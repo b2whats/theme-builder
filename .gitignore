@@ -1,0 +1,15 @@
+node_modules
+build
+cjs
+esm
+types
+public
+lerna-debug.log
+npm-debug.log
+yarn-error.log
+*.tsbuildinfo
+cypress/screenshots
+__diff_output__
+coverage
+.DS_Store
+

@@ -1,0 +1,20 @@
+{
+  "name": "slot-builder",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bench": "ts-node benchmark/murmur.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/css": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/benchmark": "^2.1.0",
+    "benchmark": "^2.1.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.1.2"
+  }
+}
