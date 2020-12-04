@@ -12,20 +12,6 @@ const makeId = (length) => {
     return result;
 }
 
-// function hash(str) {
-//   var hash = 5381,
-//       i    = str.length;
-
-//   while(i) {
-//     hash = (hash * 33) ^ str.charCodeAt(--i);
-//   }
-
-//   /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
-//    * integers. Since we want the results to be always positive, convert the
-//    * signed int to an unsigned by doing an unsigned bitshift. */
-//   return hash >>> 0;
-// }
-
 const len10 = makeId(10)
 const len100 = makeId(100)
 const len1000 = makeId(1000)
@@ -47,8 +33,5 @@ suite.add('string 10 000', function() {
 })
 .on('cycle', function(event) {
   console.log(String(event.target));
-})
-.on('complete', function() {
-  console.log('Fastest is ' + this.filter('fastest').map('name'));
 })
 .run({ 'async': true });
