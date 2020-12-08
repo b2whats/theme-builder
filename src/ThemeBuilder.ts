@@ -1,22 +1,27 @@
+import React from 'react'
 import { StyleProperties, StateSelectors } from './StyleProperties'
 import { Tokens } from './Tokens'
 
-type MaybeArray<Item> = Item[] | Item
-export type Slot<Props = StyleProperties> = Props
+const Test = () => React.createElement('div')
+
+type MaybeArray<Item> = Item extends Array<infer Element>
+  ? Item | Element
+  : Item[] | Item
+
+export type Slot<Props = unknown> = unknown extends Props
+  ? StyleProperties & StateSelectors & { withProps: boolean }
+  : Props & { withProps: boolean, component: any }
 
 export type ComponentTheme<Props, Slots> = {
   defaultProps?: Partial<Props>
   mapProps?: (props: Props) => Partial<Props> | void
-  slots: Slots
+  slots: {
+    [Name in keyof Slots]?: {
+      type: 'tag' | 'component',
+      styles: Parts<Props, Slots[Name]>[]
+    }
+  }
 }
-
-type ThemeProps<Theme> = Theme extends ComponentTheme<infer Props, infer _> ? Partial<Props> : never
-type ThemeSlots<Theme> = Theme extends ComponentTheme<infer _, infer Slots> ? Slots : never
-type ThemeSlotProps<Theme, Name> = Theme extends ComponentTheme<infer _, infer Slots>
-    ? Name extends keyof Slots
-      ? Slots[Name]
-      : never
-    : never
 
 type PropertyAsFunction<Map, Args> = { 
   [Key in keyof Map]?: NonNullable<Map[Key]> extends object
@@ -24,65 +29,64 @@ type PropertyAsFunction<Map, Args> = {
     : Map[Key] | ((props: Args) => Map[Key])
 }
 
-type Parts<ExternalProps, InternalProps> = StyleProperties extends InternalProps
-  ? string |
-    PropertyAsFunction<StyleProperties & StateSelectors, ExternalProps> |
-    ((props: ExternalProps, tokens: Tokens, slotStyle: StyleProperties) => string)
-  : InternalProps |
-    PropertyAsFunction<InternalProps, ExternalProps> |
-    ((props: ExternalProps) => InternalProps & ExternalProps)
-
-    
-const aqw = (a: Parts<ThemeProps<ButtonTheme>, ThemeSlotProps<ButtonTheme, 'Textd'>>) => {
-  typeof a === 'function' ? a : a
-  if (typeof a === 'function') {
-    a
-  }
-}
-
-type SlotStyles<Theme, Name> = MaybeArray<Parts<ThemeProps<Theme>, ThemeSlotProps<Theme, Name>>>
-
-type SlotBuilder<Theme, Name> = (slot: SlotUtils<ThemeProps<Theme>, ThemeSlotProps<Theme, Name>>) => SlotStyles<Theme, Name>
+type Parts<ExternalProps, SlotProps> = SlotProps extends StateSelectors
+  ? string
+    | PropertyAsFunction<SlotProps, ExternalProps>
+    | ((props: ExternalProps, tokens: Tokens, slotStyles: SlotProps) => string)
+  : PropertyAsFunction<SlotProps, ExternalProps>
 
 type SwitchMap<Values, Result> = {
   [Value in Extract<Values, string>]?: Result
 }
-type SwitchMap1<Values, Result> = Result
 
-interface SlotUtils<ExternalProps, InternalProps> {
-  // if(
-  //   condition: keyof Props | ((props: Props) => any),
-  //   body: MaybeArray<SchemeType<Props, InternalProps>>
-  // ): BoundSlot<Props, InternalProps>
-  // switch<Prop extends keyof Props>(
-  //   condition: Prop,
-  //   body: SwitchMap<Props[Prop], MaybeArray<SchemeType<Props, InternalProps>>>
-  // ): BoundSlot<Props, InternalProps>
-  mapped<Prop extends keyof ExternalProps, Values, Default extends Values>(
+interface SlotUtils {
+  if<ExternalProps, Props extends MaybeArray<keyof ExternalProps>, Values, PropertyValues extends Values>(
+    prop: Props | Props[],
+    value: PropertyValues,
+    defaultValue?: PropertyValues,
+  ): (props: ExternalProps) => Values | undefined
+  mapped<ExternalProps, Prop extends keyof ExternalProps, Values, Default extends Values>(
     prop: Prop,
     body: SwitchMap<ExternalProps[Prop], Values>,
     defaultValue?: Default,
   ): (props: ExternalProps) => Values | undefined
+  css<ExternalProps, SlotProps>(
+    literals: TemplateStringsArray,
+    ...placeholders: Array<(props: ExternalProps, tokens: Tokens, slotStyles: SlotProps) => string>
+  ): (props: ExternalProps, tokens: Tokens, slotStyles: SlotProps) => string
 }
 
-const slotUtils: SlotUtils<any, any> = {
-  // if: (condition, body) => ({
-  //   $then: Array.isArray(body) ? body : [body],
-  //   $if: typeof condition === 'function' ? condition : (props: any) => props[condition],
-  // }),
-  // switch: (condition, options) => {
-  //   const res = { $switch: condition }
-  //   Object.entries(options).forEach(([key, body]) => {
-  //     res[key] = Array.isArray(options[key]) ? body : [body]
-  //   })
-  //   return res
-  // },
+const utils: SlotUtils = {
+  if: (keys, value, defaultValue) => {
+    return (props: any) => {
+      const isValue = Array.isArray(keys)
+        ? keys.every(key => Boolean(props[key]))
+        : Boolean(props[keys])
+      
+      return isValue ? value : defaultValue
+    }
+  },
   mapped: (prop, options, defaultValue) => {
     return (props: any) => {
       const value = props[prop]
+
       return value in options ? options[value] : defaultValue
     }
   },
+  css: (literals, ...placeholders) => {
+    return function cssRewrite(props, tokens, slotStyles) {
+      let result = ''
+
+      for (let i = 0; i < placeholders.length; i++) {
+          result += literals[i];
+          result += placeholders[i](props, tokens, slotStyles)
+      }
+  
+      result += literals[literals.length - 1];
+
+      return result
+    }
+  }
 }
 
 const shortHands = {
@@ -119,40 +123,67 @@ function expandShorthands<T>(
   return results
 }
 
+
 class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
-  private theme = {
-    slots: {},
-  } as Theme
+  theme: ComponentTheme<any, any> = {
+    slots: {}
+  }
 
-  slot<Name extends keyof ThemeSlots<Theme>>(
+  slot<Name extends keyof Theme['slots']>(
     name: Name,
-    styles: SlotStyles<Theme, Name>,
-    type?: 'component' | 'tag',
+    styles: MaybeArray<NonNullable<Theme['slots'][Name]>['styles']>,
+    type: 'component' | 'tag' = 'tag'
   ) {
-    if (typeof styles === 'function') {
-      styles
-    }
-
     this.theme.slots[name] = { 
       type,
       styles: Array.isArray(styles) ? styles : [styles]
-      // styles: styles.map(part => isObject(part) ? expandShorthands(part) : part ) 
     }
 
     return this
   }
-  defaultProps(props: ThemeProps<Theme>) {
+  defaultProps(props: Theme['defaultProps']) {
     this.theme.defaultProps = expandShorthands(props)
 
     return this
   }
-  mapProps(map: (props: ThemeProps<Theme>) => ThemeProps<Theme> | void) {
+  mapProps(map: Theme['mapProps']) {
     this.theme.mapProps = map
 
     return this
   }
   merge(builder: ThemeBuilder<Theme>) {
-    const instance = new ThemeBuilder<ComponentTheme<ThemeProps<Theme>, ThemeSlots<Theme>>>()
+    const weight = (val: any): number => {
+      if (typeof val === 'string') return 1
+      if (typeof val === 'object') return 2
+      if (typeof val === 'function') return 3
+
+      return 0
+    }
+    const merge = (acc: any, cur: any, index: number) => {
+      const prev = acc[index - 1]
+      if (typeof prev !== typeof cur || typeof cur === 'function') {
+        acc.push(cur)
+
+        return acc
+      }
+
+      if (typeof cur === 'string') {
+        acc[index - 1] = acc[index - 1] + cur
+
+        return acc
+      }
+      if (typeof cur === 'object') {
+        acc[index - 1] = {
+          ...acc[index - 1],
+          ...cur
+        }
+
+        return acc
+      }
+
+      return acc
+    }
+    const instance = new ThemeBuilder<Theme>()
 
     if (this.theme.defaultProps || builder.theme.defaultProps) {
       instance.defaultProps(
@@ -167,18 +198,16 @@ class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
       }))
     }
 
-    for (let [key, value] of Object.entries(styles))
-    this.theme.mapProps
+    for (let [name, parts] of Object.entries(this.theme.slots)) {
+      instance.slot(name, [
+        ...parts![name].styles,
+        ...builder.theme.slots[name] && (builder.theme.slots[name]!.styles as any),
+      ].sort((a, b) => weight(a) - weight(b)).reduce(merge, []), parts!.type)
+    }
 
     return instance
   }
 }
-
-
-
-
-
-
 
 
 
@@ -258,23 +287,6 @@ type ButtonTheme = ComponentTheme<ButtonProps, {
   Text: Slot<TextProps>,
 }>
 
-type t3t = ButtonTheme extends infer U ? U : 2
-// type tt = SlotProps<ButtonTheme, 'Text'>
-type gt = ThemeSlots<ButtonTheme>
-type aa = StyleProperties extends ThemeSlots<ButtonTheme>['Text'] ? 1 : 2
-// type aaeeeeee = StyleProperties extends SlotProps<ButtonTheme, 'Text'> ? 1 : 2
-type aa3eee = StyleProperties extends TextProps ? 1 : 2
-type aaeeefef = TextProps extends StyleProperties ? 1 : 2
-// type aaeeeee = SlotProps<ButtonTheme, 'Text'> extends TextProps ? 1 : 2
-type aa33 = ThemeSlots<ButtonTheme>
-type aa3e3 = NonNullable<ThemeSlots<ButtonTheme>['Text']>
-type aae = NonNullable<ThemeSlots<ButtonTheme>['Text']> | undefined extends StyleProperties ? 1 : 2
-type qweq = TextProps extends never ? 1 : 2
-type qweqwq = never extends TextProps ? 1 : 2
-type qweqwwq = unknown extends TextProps ? 1 : 2
-type qweqwwddq = unknown extends unknown ? 1 : 2
-type qweqwwwq = never extends never ? 1 : 2
-
 
 const a = new ThemeBuilder<ButtonTheme>()
   .defaultProps({
@@ -282,28 +294,32 @@ const a = new ThemeBuilder<ButtonTheme>()
     type: 'button',
   })
   .mapProps(({ shape }) => { if (false) return {} })
+  .slot('Button', {
+    shrink: false
+  })
+  .slot('Button', {
+    withProps: true,
+    shrink: false,
+    grow: (props) => true,
+    color: (props) => 'black20',
+  })
   .slot('Button', [
-    'fewf',
+    '',
     {
-      shrink: false,
-      grow: (props) => false,
-      hover: {
-        shrink: false,
-        grow: (props) => false,
-      }
+      pl: utils.if('iconAfter', 12),
+      pr: utils.if(['iconAfter', 'children'], 12, 16),
+      color: utils.mapped('kind', { fill: 'black20', flat: 'black20' }, 'red300')
     },
-    (props, tokens, slotStyle) => ''
-  ], 'tag')
-  .slot('Text', slot => [
+    utils.css`
+      color: ${(props, tokens) => ''};
+    `
+  ])
+  .slot('Text', {
+    withProps: true,
+    bold: () => true,
+    component: Test
+  })
 
-    {
-      color: slot.mapped('variant', { primary: 'black20'}, 'black20')
-    }
-  ], 'component')
-
-  const ae = <Values>(props: Values): Values => {
-    return props
-  }
   const b = new ThemeBuilder<ButtonTheme>()
   .defaultProps({
     size: 'm',
@@ -332,7 +348,6 @@ const a = new ThemeBuilder<ButtonTheme>()
       }
     `,
     {
-      shrink: false,
       borderRadius: 5,
       pl: ({ iconBefore, children }) => iconBefore && children ? 12 : 16,
       pr: ({ iconBefore, children }) => iconBefore && children ? 12 : 16,
@@ -340,73 +355,10 @@ const a = new ThemeBuilder<ButtonTheme>()
       borderStyle: 'solid',
       borderColor: 'transparent',
       focus: false,
-      color: ae('re'),
       minHeight: ({ size }) => size,
       py: ({ size }) => ({ s: 4, m: 6, l: 8 }[size!]),
       userSelect: false,
     },
     (props, tokens, slotStyle) => ''
   ])
-  .slot('Text', [
-    (props) => ({
-      shrink: false,
-    }),
-    {
-      shrink: (props) => true
-    }
-  ])
-  .merge(a)
-  .slot('Text', [
-    (props) => ({
-      shrink: false,
-    }),
-    {
-      shrink: (props) => true
-    }
-  ])
-  
-type qq = typeof a 
 
-const aa = new ThemeBuilder<ButtonTheme>()
-  .defaultProps({
-    size: 'm',
-    type: 'button',
-  })
-  .mapProps(({ shape }) => { if (false) return {} })
-  .configSlot('Button', 'tag', [
-    (props) => ({
-      shrink: false,
-      ...props
-    }),
-    (props) => undefined,
-    (props) => props && {
-    },
-    (props, tokens) => ''
-  ])
-  .configSlot('Button', [
-    (props) => ({
-      shrink: false,
-      ...props
-    }),
-    (props) => undefined,
-    (props) => props && {
-    },
-    (props, tokens) => ''
-  ], [])
-  .slot('Text', [
-    (props, state) => ({
-      shrink: false,
-    })
-  ], 'component')
-
-  type Q = {
-    0: boolean
-    1: string
-  }
-
-  const q: Q = [true, 'ss']
-
-  type AAA = StyleProperties & StateSelectors
-  type A<U> = U extends StyleProperties ? boolean : U
-
-  type W = A<AAA>
