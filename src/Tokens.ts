@@ -16,7 +16,7 @@ type Font = {
   }
   
   lineHeight: {
-    none: [number, number]
+    none: number
     normal: number
     dense: number
   }
@@ -185,7 +185,7 @@ type Transition = {
   fade: string
 }
 
-type Breakpoints = string[]
+type Breakpoint = string[]
   
 export type Tokens = {
   focus: string
@@ -196,6 +196,5 @@ export type Tokens = {
   shadow: Shadow
   zIndex: zIndex
   transition: Transition
-  breakpoints: Breakpoints
+  breakpoint: Breakpoint
 }
-  

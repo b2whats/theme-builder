@@ -4,12 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bench": "ts-node benchmark/css.ts"
+    "start": "snowpack dev",
+    "bench": "ts-node benchmark/css.ts",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@emotion/css": "^11.0.0",
+    "@emotion/jest": "^11.1.0",
+    "@snowpack/plugin-react-refresh": "^2.3.9",
+    "@snowpack/plugin-typescript": "^1.1.1",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/stylis": "^4.0.0",
@@ -21,6 +26,7 @@
     "@types/benchmark": "^2.1.0",
     "benchmark": "^2.1.4",
     "jest": "^26.6.3",
+    "snowpack": "^2.18.5",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
     "typescript": "^4.1.2"

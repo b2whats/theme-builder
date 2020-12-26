@@ -1,28 +1,43 @@
 import React from 'react'
-import { StyleProperties, StateSelectors } from './StyleProperties'
-import { Tokens } from './Tokens'
+import { css } from '@emotion/css'
+import type { StyleProperties, StateSelectors } from './StyleProperties'
+import { objectStyleToString } from './StyleProperties'
+import { Tokens } from './tokens'
 
 const Test = () => React.createElement('div')
 
-type MaybeArray<Item> = Item extends Array<infer Element>
-  ? Item | Element
+type MaybeArray<Item> = Item extends []
+  ? Item | Item[number]
   : Item[] | Item
 
 export type Slot<Props = unknown> = unknown extends Props
   ? StyleProperties & StateSelectors & { withProps: boolean }
   : Props & { withProps: boolean, component: any }
 
+type ShortHands = 'p' | 'px' | 'py' | 'm' | 'mx' | 'my'
 export type ComponentTheme<Props, Slots> = {
   defaultProps?: Partial<Props>
-  mapProps?: (props: Props) => Partial<Props> | void
+  mapProps?: (props: Props) => Omit<Partial<Props>, ShortHands> | void | false
   slots: {
-    [Name in keyof Slots]?: {
-      type: 'tag' | 'component',
+    [Name in keyof Slots]: {
+      type?: 'tag' | 'component',
       styles: Parts<Props, Slots[Name]>[]
     }
   }
 }
 
+type ComputeTheme<Theme> = Theme extends ComponentTheme<infer _, infer Slots>
+    ? {
+      [Name in keyof Slots]: Slots[Name] extends Slot<infer Props>
+        ? {
+          type: 'component',
+          props: Props
+        } : {
+          type: 'tag',
+          className: string,
+        } 
+    }
+    : never
 type PropertyAsFunction<Map, Args> = { 
   [Key in keyof Map]?: NonNullable<Map[Key]> extends object
     ? PropertyAsFunction<Map[Key], Args>
@@ -35,8 +50,8 @@ type Parts<ExternalProps, SlotProps> = SlotProps extends StateSelectors
     | ((props: ExternalProps, tokens: Tokens, slotStyles: SlotProps) => string)
   : PropertyAsFunction<SlotProps, ExternalProps>
 
-type SwitchMap<Values, Result> = {
-  [Value in Extract<Values, string>]?: Result
+type SwitchMap<Props, Prop extends keyof Props, Result> = {
+  [Value in Extract<Props[Prop], string>]?: Result | ((props: Props) => Result | undefined)
 }
 
 interface SlotUtils {
@@ -45,9 +60,9 @@ interface SlotUtils {
     value: PropertyValues,
     defaultValue?: PropertyValues,
   ): (props: ExternalProps) => Values | undefined
-  mapped<ExternalProps, Prop extends keyof ExternalProps, Values, Default extends Values>(
+  map<ExternalProps, Prop extends keyof ExternalProps, Values, Default extends Values>(
     prop: Prop,
-    body: SwitchMap<ExternalProps[Prop], Values>,
+    body: SwitchMap<ExternalProps, Prop, Values>,
     defaultValue?: Default,
   ): (props: ExternalProps) => Values | undefined
   css<ExternalProps, SlotProps>(
@@ -56,7 +71,7 @@ interface SlotUtils {
   ): (props: ExternalProps, tokens: Tokens, slotStyles: SlotProps) => string
 }
 
-const utils: SlotUtils = {
+export const utils: SlotUtils = {
   if: (keys, value, defaultValue) => {
     return (props: any) => {
       const isValue = Array.isArray(keys)
@@ -66,11 +81,13 @@ const utils: SlotUtils = {
       return isValue ? value : defaultValue
     }
   },
-  mapped: (prop, options, defaultValue) => {
+  map: (prop, options, defaultValue) => {
     return (props: any) => {
       const value = props[prop]
 
-      return value in options ? options[value] : defaultValue
+      return value in options
+        ? typeof options[value] === 'function' ? options[value](props) : options[value]
+        : defaultValue
     }
   },
   css: (literals, ...placeholders) => {
@@ -96,8 +113,6 @@ const shortHands = {
   p: (value: any) => ({ pt: value, pr: value, pb: value, pl: value }),
   px: (value: any) => ({ pr: value, pl: value }),
   py: (value: any) => ({ pt: value, pb: value }),
-  bold: (value: boolean) => value && ({ fontWeight: 600 }),
-  light: (value: boolean) => value && ({ fontWeight: 300 }),
 }
 
 const isObject = (value: any): value is object => value && value.constructor && value.constructor === Object
@@ -106,6 +121,8 @@ function expandShorthands<T>(
   styles: T
 ): T {
   let results = {} as T
+
+  if (!isObject(styles)) return styles
 
   for (let [key, value] of Object.entries(styles)) {
     if (shortHands[key]) {
@@ -123,66 +140,76 @@ function expandShorthands<T>(
   return results
 }
 
+const weight = (val: any): number => {
+  if (typeof val === 'string') return 1
+  if (typeof val === 'object') return 2
+  if (typeof val === 'function') return 3
 
-class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
-  theme: ComponentTheme<any, any> = {
-    slots: {}
-  }
+  return 0
+}
 
-  slot<Name extends keyof Theme['slots']>(
-    name: Name,
-    styles: MaybeArray<NonNullable<Theme['slots'][Name]>['styles']>,
-    type: 'component' | 'tag' = 'tag'
-  ) {
-    this.theme.slots[name] = { 
-      type,
-      styles: Array.isArray(styles) ? styles : [styles]
+export function mergeStyles<Styles extends Parts<any, any>>(arr: Styles[]): Styles[] {
+  return arr.sort((a, b) => weight(a) - weight(b)).reduce<Styles[]>((acc, cur) => {
+    const prev = acc[acc.length - 1]
+    if (typeof prev !== typeof cur || typeof cur === 'function') {
+      acc.push(cur)
+
+      return acc
     }
 
-    return this
-  }
-  defaultProps(props: Theme['defaultProps']) {
-    this.theme.defaultProps = expandShorthands(props)
+    if (typeof prev === 'string' && typeof cur === 'string') {
+      (acc[acc.length - 1] as string) = prev + cur
 
-    return this
-  }
-  mapProps(map: Theme['mapProps']) {
-    this.theme.mapProps = map
-
-    return this
-  }
-  merge(builder: ThemeBuilder<Theme>) {
-    const weight = (val: any): number => {
-      if (typeof val === 'string') return 1
-      if (typeof val === 'object') return 2
-      if (typeof val === 'function') return 3
-
-      return 0
+      return acc
     }
-    const merge = (acc: any, cur: any, index: number) => {
-      const prev = acc[index - 1]
-      if (typeof prev !== typeof cur || typeof cur === 'function') {
-        acc.push(cur)
-
-        return acc
-      }
-
-      if (typeof cur === 'string') {
-        acc[index - 1] = acc[index - 1] + cur
-
-        return acc
-      }
-      if (typeof cur === 'object') {
-        acc[index - 1] = {
-          ...acc[index - 1],
-          ...cur
-        }
-
-        return acc
+    if (typeof prev === 'object' && typeof cur === 'object') {
+      (acc[acc.length - 1] as object) = {
+        ...prev as object,
+        ...cur as object
       }
 
       return acc
     }
+
+    return acc
+  }, [])
+
+}
+
+export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
+  theme = {
+    slots: {}
+  } as Theme
+
+  slot<Name extends keyof this['theme']['slots']>(
+    name: Name,
+    styles: this['theme']['slots'][Name]['styles'] | this['theme']['slots'][Name]['styles'][number],
+    type?: 'component' | 'tag'
+  ) {
+    this.theme.slots[name] = { 
+      type,
+      styles: Array.isArray(styles)
+        ? mergeStyles((styles as []).map(expandShorthands))
+        : [expandShorthands(styles)]
+    }
+
+    return this
+  }
+  defaultProps(props: this['theme']['defaultProps']) {
+    if (!props) return this
+
+    this.theme.defaultProps = expandShorthands(props)
+
+    return this
+  }
+  mapProps(map: this['theme']['mapProps']) {
+    this.theme.mapProps = map
+
+    return this
+  }
+  merge(builder: this | undefined) {
+    if (!builder) return this
+
     const instance = new ThemeBuilder<Theme>()
 
     if (this.theme.defaultProps || builder.theme.defaultProps) {
@@ -199,13 +226,95 @@ class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
     }
 
     for (let [name, parts] of Object.entries(this.theme.slots)) {
-      instance.slot(name, [
-        ...parts![name].styles,
-        ...builder.theme.slots[name] && (builder.theme.slots[name]!.styles as any),
-      ].sort((a, b) => weight(a) - weight(b)).reduce(merge, []), parts!.type)
+      instance.slot(name, mergeStyles([
+        ...parts.styles,
+        ...builder.theme.slots[name] ? builder.theme.slots[name].styles : [],
+      ]), parts.type)
     }
 
     return instance
+  }
+  compute(props: this['theme']['defaultProps'], tokens: Tokens): ComputeTheme<this['theme']> {
+    const result = {} as any
+
+    props = {
+      ...this.theme.defaultProps,
+      ...expandShorthands(props),
+    }
+
+    if (this.theme.mapProps) {
+      Object.assign(props, this.theme.mapProps(props))
+    }
+    
+    for (let [name, { type, styles }] of Object.entries(this.theme.slots)) {
+      if (type === 'tag') {
+        let slotStyles = {}
+
+        const className = styles.map(style => {
+          if (typeof style === 'string') {
+            return css(style)
+          }
+  
+          if (typeof style === 'object') {
+            if (style.withProps) {
+              style = {
+                ...style,
+                ...props,
+              }
+            }
+            slotStyles = style
+            return css(objectStyleToString(props, tokens, style as Slot))
+          }
+  
+          if (typeof style === 'function') {
+            return css(style(props, tokens, slotStyles))
+          }
+  
+          return ''
+        }).join(' ')
+
+        result[name] = {
+          type,
+          className,
+        }
+      } else {
+        const componentProps = styles.map(style => {
+          if (typeof style === 'object') {
+            if (style.withProps) {
+              style = {
+                ...style,
+                ...props,
+              }
+
+              delete style.withProps
+            }
+
+            const result = {}
+            for (let prop in style) {
+              result[prop] = typeof style[prop] === 'function'
+                ? style[prop](props)
+                : style[prop]
+            }
+
+            return result
+          }
+
+          return {}
+        }).reduce((acc, curr) => {
+          Object.assign(acc, curr)
+
+          return acc
+        })
+
+        result[name] = {
+          type,
+          props: componentProps as any,
+        }
+      }
+
+    }
+
+    return result
   }
 }
 
@@ -293,7 +402,7 @@ const a = new ThemeBuilder<ButtonTheme>()
     size: 'm',
     type: 'button',
   })
-  .mapProps(({ shape }) => { if (false) return {} })
+  .mapProps(({ shape }) => { if (false) return { pt: 1 } })
   .slot('Button', {
     shrink: false
   })
@@ -308,7 +417,10 @@ const a = new ThemeBuilder<ButtonTheme>()
     {
       pl: utils.if('iconAfter', 12),
       pr: utils.if(['iconAfter', 'children'], 12, 16),
-      color: utils.mapped('kind', { fill: 'black20', flat: 'black20' }, 'red300')
+      color: utils.map('kind', {
+        fill: utils.map('size', { s: 'red400', m: 'green400' }),
+        flat: 'black20'
+      }, 'red300')
     },
     utils.css`
       color: ${(props, tokens) => ''};

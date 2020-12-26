@@ -16,6 +16,6 @@
     "isolatedModules": true,
     "typeRoots": ["node_modules/@types"],
   },
-  "include": ["src", "benchmark"],
+  "include": ["src", "public", "benchmark"],
   "exclude": ["node_modules"]
 }
