@@ -194,6 +194,22 @@ test('merge two theme - mapProps not empty/not empty', () => {
   expect(mapProps3).toMatchSnapshot()
 })
 
+test('merge two theme - cache', () => {
+  const ButtonTheme1 = new ThemeBuilder<ButtonTheme>()
+    .slot('Button', {
+      width: 100
+    })
+  const ButtonTheme2 = new ThemeBuilder<ButtonTheme>()
+    .slot('Button', {
+      width: 200
+    })
+
+  const ButtonTheme3 = ButtonTheme1.merge(ButtonTheme2)
+
+  expect(ButtonTheme1.cache.has(ButtonTheme2)).toBe(true)
+  expect(ButtonTheme3).toMatchSnapshot()
+})
+
 test('mergeStyles - sort', () => {
   const styles = mergeStyles(['', {}, () => {}, '', {}, {}, () => {}])
 
@@ -209,6 +225,19 @@ test('mergeStyles - merge', () => {
     { two: 2 },
     { three: '3', one: 3 },
     () => {}
+  ])
+
+  expect(styles).toMatchSnapshot()
+})
+
+test('mergeStyles - nested merge', () => {
+  const styles = mergeStyles([
+    'str1;',
+    { one: '1', two: 1, nested: { one: '1', two: '1'} },
+    () => {},
+    'str2',
+    { two: 2 },
+    { three: '3', one: 3, nested: { three: 3, two: 3} },
   ])
 
   expect(styles).toMatchSnapshot()

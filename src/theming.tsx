@@ -1,9 +1,9 @@
 import * as React from 'react'
-import deepmerge from 'deepmerge'
 import { Theme } from './theme'
+import { mergeTheme } from './mergeTheme'
 
 type ThemeProviderProps = {
-  theme: Theme,
+  theme?: Theme,
   children: any
 }
 
@@ -13,8 +13,8 @@ export const useTheme = () => React.useContext(ThemeContext)
 export const ThemeProvider = (props: ThemeProviderProps) => {
   let theme = React.useContext(ThemeContext)
 
-  if (theme) {
-    theme = props.theme
+  if (theme !== props.theme) {
+    theme = mergeTheme(theme, props.theme)
   }
 
   return (

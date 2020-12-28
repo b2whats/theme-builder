@@ -2,6 +2,7 @@ import React from 'react'
 import { css } from '@emotion/css'
 import type { StyleProperties, StateSelectors } from './StyleProperties'
 import { objectStyleToString } from './StyleProperties'
+import { mergeObject } from './mergeTheme'
 import { Tokens } from './tokens'
 
 const Test = () => React.createElement('div')
@@ -161,10 +162,7 @@ export function mergeStyles<Styles extends Parts<any, any>>(arr: Styles[]): Styl
       return acc
     }
     if (typeof prev === 'object' && typeof cur === 'object') {
-      (acc[acc.length - 1] as object) = {
-        ...prev as object,
-        ...cur as object
-      }
+      (acc[acc.length - 1] as object) = mergeObject(prev as object, cur as object)
 
       return acc
     }
@@ -179,7 +177,7 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
     slots: {}
   } as Theme
 
-  private cache = new WeakMap()
+  cache = new WeakMap()
 
   slot<Name extends keyof this['theme']['slots']>(
     name: Name,

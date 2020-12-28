@@ -3,7 +3,7 @@
 exports[`compute 1`] = `
 Object {
   "Button": Object {
-    "className": "css-1qwrorl css-qiomx8",
+    "className": "css-qhe590",
     "type": "tag",
   },
   "Text": Object {
@@ -22,6 +22,7 @@ Object {
 
 exports[`defaultProps = { size: s } 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "defaultProps": Object {
       "size": "s",
@@ -33,6 +34,7 @@ ThemeBuilder {
 
 exports[`defaultProps = undefined 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {},
   },
@@ -41,6 +43,7 @@ ThemeBuilder {
 
 exports[`mapProps = () => ({}) 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "mapProps": [Function],
     "slots": Object {},
@@ -48,8 +51,27 @@ ThemeBuilder {
 }
 `;
 
+exports[`merge two theme - cache 1`] = `
+ThemeBuilder {
+  "cache": WeakMap {},
+  "theme": Object {
+    "slots": Object {
+      "Button": Object {
+        "styles": Array [
+          Object {
+            "width": 200,
+          },
+        ],
+        "type": undefined,
+      },
+    },
+  },
+}
+`;
+
 exports[`merge two theme - defaultProps additional props 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "defaultProps": Object {
       "kind": "flat",
@@ -62,6 +84,7 @@ ThemeBuilder {
 
 exports[`merge two theme - defaultProps empty/empty 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {},
   },
@@ -70,6 +93,7 @@ ThemeBuilder {
 
 exports[`merge two theme - defaultProps empty/not empty 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "defaultProps": Object {
       "size": "s",
@@ -81,6 +105,7 @@ ThemeBuilder {
 
 exports[`merge two theme - defaultProps override props 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "defaultProps": Object {
       "size": "l",
@@ -92,6 +117,7 @@ ThemeBuilder {
 
 exports[`merge two theme - mapProps empty/not empty 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "mapProps": [Function],
     "slots": Object {},
@@ -120,6 +146,23 @@ Array [
 ]
 `;
 
+exports[`mergeStyles - nested merge 1`] = `
+Array [
+  "str1;str2",
+  Object {
+    "nested": Object {
+      "one": "1",
+      "three": 3,
+      "two": 3,
+    },
+    "one": 3,
+    "three": "3",
+    "two": 2,
+  },
+  [Function],
+]
+`;
+
 exports[`mergeStyles - sort 1`] = `
 Array [
   "",
@@ -131,6 +174,7 @@ Array [
 
 exports[`slot Button as array styles 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {
       "Button": Object {
@@ -148,6 +192,7 @@ ThemeBuilder {
 
 exports[`slot Button as array styles with any elements 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {
       "Button": Object {
@@ -167,6 +212,7 @@ ThemeBuilder {
 
 exports[`slot Button as object styles 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {
       "Button": Object {
@@ -185,6 +231,7 @@ ThemeBuilder {
 
 exports[`slot Button is tag (default type) 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {
       "Button": Object {
@@ -202,6 +249,7 @@ ThemeBuilder {
 
 exports[`slot Text is component 1`] = `
 ThemeBuilder {
+  "cache": WeakMap {},
   "theme": Object {
     "slots": Object {
       "Text": Object {
