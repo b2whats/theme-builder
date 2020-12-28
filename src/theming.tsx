@@ -1,4 +1,5 @@
 import * as React from 'react'
+import deepmerge from 'deepmerge'
 import { Theme } from './theme'
 
 type ThemeProviderProps = {

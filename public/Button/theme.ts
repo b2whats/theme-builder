@@ -11,9 +11,6 @@ export const buttonTheme = new ThemeBuilder<ButtonTheme>()
     size: 'm',
     type: 'button',
   })
-  .mapProps(({ block }) => block && {
-    width: 1,
-  })
   .slot('Button', [
     `
       font-family: inherit;
@@ -33,15 +30,34 @@ export const buttonTheme = new ThemeBuilder<ButtonTheme>()
     `,
     {
       withProps: true,
-      display: 'block',
+      display: 'inline-block',
+      width: utils.if('block', 1),
       height: ({ size }) => size,
       color: 'white',
       bg: 'blue500',
-      valign: 'middle',
       px: 'l',
       focus: false,
+      truncate: true,
       hover: {
         bg: 'blue800',
       },
-    }
+    },
+    utils.css`
+      ${(props, tokens, styles) => ''}
+    `,
   ], 'tag')
+  .slot('Text', [{
+
+  }], 'component')
+
+
+export const otherButtonTheme = new ThemeBuilder<ButtonTheme>()
+  .slot('Button', [
+    {
+      color: 'red400',
+      bg: 'green500',
+      hover: {
+        bg: 'green800',
+      },
+    }
+  ])

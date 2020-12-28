@@ -85,9 +85,7 @@ export const utils: SlotUtils = {
     return (props: any) => {
       const value = props[prop]
 
-      return value in options
-        ? typeof options[value] === 'function' ? options[value](props) : options[value]
-        : defaultValue
+      return (typeof options[value] === 'function' ? options[value](props) : options[value]) || defaultValue
     }
   },
   css: (literals, ...placeholders) => {
@@ -181,6 +179,8 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
     slots: {}
   } as Theme
 
+  private cache = new WeakMap()
+
   slot<Name extends keyof this['theme']['slots']>(
     name: Name,
     styles: this['theme']['slots'][Name]['styles'] | this['theme']['slots'][Name]['styles'][number],
@@ -207,8 +207,10 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
 
     return this
   }
-  merge(builder: this | undefined) {
+  merge(builder: this | undefined): this {
     if (!builder) return this
+
+    if (this.cache.has(builder)) return this.cache.get(builder)
 
     const instance = new ThemeBuilder<Theme>()
 
@@ -232,7 +234,9 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
       ]), parts.type)
     }
 
-    return instance
+    this.cache.set(builder, instance)
+
+    return instance as this
   }
   compute(props: this['theme']['defaultProps'], tokens: Tokens): ComputeTheme<this['theme']> {
     const result = {} as any
@@ -317,160 +321,3 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
     return result
   }
 }
-
-
-
-
-interface ButtonProps extends StyleProperties {
-  /** Иконка слева */
-  children?: any
-  /** Иконка слева */
-  iconBefore?: React.ReactNode
-  /** Иконка справа */
-  iconAfter?: React.ReactNode
-  /** Размер кнопки */
-  size?: 's' | 'm' | 'l'
-  /** Имя кнопки */
-  name?: string
-  /** Значение кнопки */
-  value?: string | number
-  /** Внешний вид кнопки */
-  kind?: 'fill' | 'outline' | 'flat'
-  /** Нажатое состояние кнопки */
-  checked?: boolean
-  /** Действие которое совершает кнопка */
-  type?: 'button' | 'submit' | 'reset'
-  /** Кнопка со спиннером */
-  loading?: boolean
-  /** Квадратная круглая и вытянутая форма с закругленными углами */
-  shape?: 'pill' | 'square' | 'circle'
-  /** Вторая строка */
-  multiline?: boolean
-  /** Кнопка занимает всю ширину */
-  block?: boolean
-  /** Ссылка для перехода */
-  href?: string
-
-  pressedOffset?: number
-}
-
-
-interface TextProps extends StyleProperties {
-  /** Размер текста фолбек */
-  fontSize?: number
-  /** Коэффициент для высоты строки */
-  lineHeight?: number | 'none' | 'inherit'
-  /** Уплотненная высота строки */
-  dense?: boolean
-  /** Расстояние между буквами */
-  letterSpacing?: number
-  /** Жирное начертание */
-  bold?: boolean
-  /** Легкое начертание */
-  light?: boolean
-  /** Курсивное начертание */
-  italic?: boolean
-  /** Текст в верхнем регистре */
-  uppercase?: boolean
-  /** Подчеркнутый текст */
-  underline?: 'dashed' | 'dotted' | boolean
-  /** Обрезка высоты строки у текста сверху и снизу */
-  crop?: boolean
-  /** Текст без переносов */
-  noWrap?: boolean
-  /** Текст с сохранением всех пробелов */
-  pre?: boolean
-  /** Многоточие в конце строки */
-  truncate?: boolean
-  /** Инлайновое поведение */
-  inline?: boolean
-  /** Блочное поведение */
-  block?: boolean
-  /** Пресет компонента */
-  preset?: 'title' | 'title-small' | 'heading-large' | 'heading' | 'heading-small'
-  preset2?: 'title' | 'title-small' | 'heading-large' | 'heading' | 'heading-small'
-}
-
-type ButtonTheme = ComponentTheme<ButtonProps, {
-  Button: Slot,
-  Text: Slot<TextProps>,
-}>
-
-
-const a = new ThemeBuilder<ButtonTheme>()
-  .defaultProps({
-    size: 'm',
-    type: 'button',
-  })
-  .mapProps(({ shape }) => { if (false) return { pt: 1 } })
-  .slot('Button', {
-    shrink: false
-  })
-  .slot('Button', {
-    withProps: true,
-    shrink: false,
-    grow: (props) => true,
-    color: (props) => 'black20',
-  })
-  .slot('Button', [
-    '',
-    {
-      pl: utils.if('iconAfter', 12),
-      pr: utils.if(['iconAfter', 'children'], 12, 16),
-      color: utils.map('kind', {
-        fill: utils.map('size', { s: 'red400', m: 'green400' }),
-        flat: 'black20'
-      }, 'red300')
-    },
-    utils.css`
-      color: ${(props, tokens) => ''};
-    `
-  ])
-  .slot('Text', {
-    withProps: true,
-    bold: () => true,
-    component: Test
-  })
-
-  const b = new ThemeBuilder<ButtonTheme>()
-  .defaultProps({
-    size: 'm',
-    type: 'button',
-  })
-  .mapProps(({ shape }) => { if (false) return {} })
-  .slot('Button', [
-    `    
-      font-family: inherit;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      margin: 0;
-      line-height: 0;
-      position: relative;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
-      -webkit-touch-callout: none;
-      &::-moz-focus-inner {
-        border: 0;
-      }
-      a& {
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-      }
-    `,
-    {
-      borderRadius: 5,
-      pl: ({ iconBefore, children }) => iconBefore && children ? 12 : 16,
-      pr: ({ iconBefore, children }) => iconBefore && children ? 12 : 16,
-      borderWidth: 1,
-      borderStyle: 'solid',
-      borderColor: 'transparent',
-      focus: false,
-      minHeight: ({ size }) => size,
-      py: ({ size }) => ({ s: 4, m: 6, l: 8 }[size!]),
-      userSelect: false,
-    },
-    (props, tokens, slotStyle) => ''
-  ])
-

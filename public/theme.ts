@@ -1,6 +1,6 @@
 import { Theme } from '../src/theme'
 import { tokens } from './tokens'
-import { buttonTheme, ButtonTheme } from './Button/index'
+import { buttonTheme } from './Button/index'
 
 declare module '../src/theme' {
   export interface Theme {

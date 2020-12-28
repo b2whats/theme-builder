@@ -1,3 +1,13 @@
 {
-    "files.autoSave": "onFocusChange"
+    "editor.formatOnSave": false,
+    "editor.tabSize": 2,
+    "files.autoSave": "onFocusChange",
+    "typescript.locale": "en",
+    "typescript.suggest.completeFunctionCalls": true,
+    "javascript.validate.enable": false,
+    "typescript.format.enable": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
 }

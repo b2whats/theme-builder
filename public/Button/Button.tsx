@@ -5,8 +5,8 @@ import { buttonTheme } from './theme'
 
 export const Button = ({ children, ...props }: ButtonProps) => {
   const theme = useTheme()
-  console.log(theme)
-  const { Button } = buttonTheme.compute(props, theme)
+
+  const { Button } = buttonTheme.merge(theme.Button).compute(props, theme)
 
   return (
     <button className={Button.className}>{children}</button>
