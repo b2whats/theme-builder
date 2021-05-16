@@ -1,8 +1,6 @@
-type Font = {
-  fontFamily: string
-  color: keyof Palette
-  smoothing?: 'auto' | 'antialiased' | 'subpixel'
-  
+import { isObject, flatObject } from './utils'
+
+type Font = {  
   fontSize: {
     xxxxxl: number
     xxxxl: number
@@ -198,3 +196,17 @@ export type Tokens = {
   transition: Transition
   breakpoint: Breakpoint
 }
+
+const createBaseToken = <T extends object>(shape: T) => flatObject(shape, '.')
+
+const token = createBaseToken({
+  palette: {
+    blue10: 11,
+    blue20: '',
+    blue30: '',
+  },
+  breakpoints: ['s', 'm', 'l']
+} as const)
+
+
+const $ww = 22

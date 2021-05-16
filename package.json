@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "snowpack dev",
-    "bench": "ts-node benchmark/css.ts",
+    "prod": "snowpack build",
+    "bench": "ts-node benchmark/themeBuilder.ts",
     "test": "jest"
   },
   "author": "",
@@ -18,6 +19,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/stylis": "^4.0.0",
+    "cellx": "^1.10.17",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "stylis": "^4.0.6"
@@ -29,6 +31,6 @@
     "snowpack": "^2.18.5",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
-    "typescript": "^4.1.2"
+    "typescript": "^4.1.5"
   }
 }

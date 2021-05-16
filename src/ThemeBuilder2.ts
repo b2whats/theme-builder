@@ -1,10 +1,9 @@
-//import { css } from '@emotion/css'
+// @ts-nocheck
+import { css } from '@emotion/css'
 import type { StyleProperties, StateSelectors } from './StyleProperties'
-import { objectStyleToString, objectStyleToString11, expandShorthands } from './StyleProperties'
+import { objectStyleToString, expandShorthands } from './StyleProperties'
 import { mergeObject, weakMemoize, memoize } from './merge'
 import { Tokens } from './tokens'
-
-const css = (...args: any[]) => ''
 
 type MaybeArray<Item> = Item extends []
   ? Item | Item[number]
@@ -140,14 +139,11 @@ export function mergeStyles<Styles extends Parts<any, any>>(arr: Styles[]): Styl
 
 }
 
-export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
-  theme = {
-    slots: {}
-  } as Theme
+export class ThemeBuilder<Props> {
+
 
   constructor() {
     this.merge = weakMemoize(this.merge.bind(this))
-    //this.compute = weakMemoize(this.compute.bind(this))
   }
 
   slot<Name extends keyof this['theme']['slots']>(
@@ -203,7 +199,7 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
 
     return instance
   }
-  compute = (tokens: Tokens) => (props: this['theme']['defaultProps']): ComputeTheme<this['theme']> => {
+  compute = weakMemoize((tokens: Tokens) => memoize((props: this['theme']['defaultProps']): ComputeTheme<this['theme']> => {
     const result = {} as any
 
     props = {
@@ -221,7 +217,7 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
 
         const className = styles.map(style => {
           if (typeof style === 'string') {
-            return style
+            return css(style)
           }
   
           if (typeof style === 'object') {
@@ -232,7 +228,7 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
               }
             }
             slotStyles = style
-            return objectStyleToString11(props, tokens, style as Slot)
+            return css(objectStyleToString(props, tokens, style as Slot))
           }
   
           if (typeof style === 'function') {
@@ -284,5 +280,5 @@ export class ThemeBuilder<Theme extends ComponentTheme<any, any>> {
     }
 
     return result
-  }
+  }))
 }

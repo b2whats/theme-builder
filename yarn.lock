@@ -681,6 +681,11 @@
   dependencies:
     mkdirp "^1.0.4"
 
+"@riim/next-tick@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@riim/next-tick/-/next-tick-1.2.4.tgz#d6278fff770deccb5c8807b223b48e93ee7bfbde"
+  integrity sha512-wj6hIYQ1DvTyfUqcRYgaqY8K8A40jqR6h4N1054nHmxAn+dbtOrSwGiJu9nv0DGo1NQ0tJmrmTl8mj5U0V9o/A==
+
 "@rollup/plugin-alias@^3.0.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-alias/-/plugin-alias-3.1.1.tgz#bb96cf37fefeb0a953a6566c284855c7d1cd290c"
@@ -1427,6 +1432,13 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
+
+cellx@^1.10.17:
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/cellx/-/cellx-1.10.17.tgz#81f0063fbb02c407dd3736ab3228ae7fae5ff43e"
+  integrity sha512-uGJRizGANlO6OT874NeuOxNt9y9OcHzHqI22uO+v2GxB+5RQOcU7GYKUL3pEpalQl40nEClVo1/jsSRxTfV3tA==
+  dependencies:
+    "@riim/next-tick" "^1.2.4"
 
 chalk@^2.0.0, chalk@^2.4.2:
   version "2.4.2"
@@ -4940,10 +4952,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.2.tgz#6369ef22516fe5e10304aae5a5c4862db55380e9"
-  integrity sha512-thGloWsGH3SOxv1SoY7QojKi0tc+8FnOmiarEGMbd/lar7QOEd3hvlx3Fp5y6FlDUGl9L+pd4n2e+oToGMmhRQ==
+typescript@^4.1.5:
+  version "4.1.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.5.tgz#123a3b214aaff3be32926f0d8f1f6e704eb89a72"
+  integrity sha512-6OSu9PTIzmn9TCDiovULTnET6BgXtDYL4Gg4szY+cGsc3JP1dQL8qvE8kShTRx1NIw4Q9IBHlwODjkjWEtMUyA==
 
 union-value@^1.0.0:
   version "1.0.1"

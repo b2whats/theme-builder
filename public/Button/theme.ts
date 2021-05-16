@@ -3,7 +3,7 @@ import { ButtonProps } from './contract'
 
 export type ButtonTheme = ComponentTheme<ButtonProps, {
   Button: Slot,
-  Text: Slot,
+  Text: Slot<{ text: string }>,
 }>
 
 export const buttonTheme = new ThemeBuilder<ButtonTheme>()
@@ -11,6 +11,7 @@ export const buttonTheme = new ThemeBuilder<ButtonTheme>()
     size: 'm',
     type: 'button',
   })
+  .mapProps((props) => ({ pt: 1}))
   .slot('Button', [
     `
       font-family: inherit;
@@ -31,24 +32,24 @@ export const buttonTheme = new ThemeBuilder<ButtonTheme>()
     {
       withProps: true,
       display: 'inline-block',
-      width: utils.if('block', 1),
+      width: utils.if('stretch', 'jjj'),
       height: ({ size }) => size,
       color: 'white',
-      bg: 'blue500',
+      bg: ['blue500', 'red700'],
       px: 'l',
       focus: false,
       truncate: true,
       hover: {
-        bg: 'blue800',
+        bg: utils.if('stretch', 'red700'),
       },
     },
     utils.css`
       ${(props, tokens, styles) => ''}
     `,
-  ], 'tag')
+  ], 'button')
   .slot('Text', [{
-
-  }], 'component')
+    text: 'fef'
+  }])
 
 
 export const otherButtonTheme = new ThemeBuilder<ButtonTheme>()
@@ -61,3 +62,22 @@ export const otherButtonTheme = new ThemeBuilder<ButtonTheme>()
       },
     }
   ])
+
+
+type A = {
+  a: number
+  b: string
+  className: number
+}
+
+type B = 'className' & keyof A
+
+type WithConditionalCSSProp<P> = 'className' extends keyof P
+  ? string extends P['className' & keyof P]
+    ? { css?: any }
+    : {}
+  : {}
+
+  type C = WithConditionalCSSProp<A>
+
+  type qqq = A[never]

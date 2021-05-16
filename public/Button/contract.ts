@@ -8,7 +8,7 @@ export interface ButtonProps extends StyleProperties {
   /** Иконка справа */
   iconAfter?: React.ReactNode
   /** Размер кнопки */
-  size?: 's' | 'm' | 'l'
+  size?: 's' | 'm' | 'l' | ('s' | 'm' | 'l')[]
   /** Имя кнопки */
   name?: string
   /** Значение кнопки */

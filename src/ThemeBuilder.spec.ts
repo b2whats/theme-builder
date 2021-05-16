@@ -1,4 +1,4 @@
-import { StyleProperties } from './StyleProperties'
+import type { StyleProperties } from './StyleProperties'
 import { ThemeBuilder, utils, mergeStyles, ComponentTheme, Slot } from './ThemeBuilder'
 
 interface ButtonProps {
@@ -51,7 +51,7 @@ test('slot Button is tag (default type)', () => {
   const ButtonTheme = new ThemeBuilder<ButtonTheme>()
     .slot('Button', {
       fontSize: 12
-    }, 'tag')
+    }, 'div')
 
   expect(ButtonTheme).toMatchSnapshot()
 })
@@ -60,7 +60,7 @@ test('slot Text is component', () => {
   const ButtonTheme = new ThemeBuilder<ButtonTheme>()
     .slot('Text', {
       fontSize: 12
-    }, 'component')
+    })
 
   expect(ButtonTheme).toMatchSnapshot()
 })
@@ -70,7 +70,7 @@ test('slot Button as object styles', () => {
     .slot('Button', {
       fontSize: 12,
       color: () => 'red300',
-    }, 'tag')
+    }, 'div')
 
   expect(ButtonTheme).toMatchSnapshot()
 })
@@ -81,7 +81,7 @@ test('slot Button as array styles', () => {
       {
         fontSize: 12
       }
-    ], 'tag')
+    ], 'div')
 
   expect(ButtonTheme).toMatchSnapshot()
 })
@@ -96,7 +96,7 @@ test('slot Button as array styles with any elements', () => {
       utils.css`
         color: red;
       `
-    ], 'tag')
+    ], 'div')
 
   expect(ButtonTheme).toMatchSnapshot()
 })
@@ -194,7 +194,7 @@ test('merge two theme - mapProps not empty/not empty', () => {
   expect(mapProps3).toMatchSnapshot()
 })
 
-test('merge two theme - cache', () => {
+test('merge two theme - cache 2', () => {
   const ButtonTheme1 = new ThemeBuilder<ButtonTheme>()
     .slot('Button', {
       width: 100
@@ -205,9 +205,9 @@ test('merge two theme - cache', () => {
     })
 
   const ButtonTheme3 = ButtonTheme1.merge(ButtonTheme2)
+  const ButtonTheme4 = ButtonTheme1.merge(ButtonTheme2)
 
-  expect(ButtonTheme1.cache.has(ButtonTheme2)).toBe(true)
-  expect(ButtonTheme3).toMatchSnapshot()
+  expect(ButtonTheme3).toBe(ButtonTheme4)
 })
 
 test('mergeStyles - sort', () => {
@@ -253,19 +253,19 @@ test('compute', () => {
       {
         p: 12,
       },
-    ], 'tag')
+    ], 'div')
     .slot('Text', [
       {
         withProps: true,
         grow: true,
       }
-    ], 'component')
+    ])
 
   const props: ButtonProps = {
     kind: 'flat',
     p: 10,
   }
 
-  const a = ButtonTheme.compute(props, {} as any)
+  const a = ButtonTheme.compute({ breakpoint: [] } as any)(props)
   expect(a).toMatchSnapshot()
 })

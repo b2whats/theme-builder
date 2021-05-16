@@ -1,4 +1,4 @@
-import { Tokens } from '../src/tokens'
+import { Tokens } from './tokens'
 
 export const tokens: Tokens = {
   focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',

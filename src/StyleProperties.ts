@@ -1,95 +1,99 @@
-import { Tokens } from './tokens'
+import type { Tokens } from './tokens'
 import type { Slot } from './ThemeBuilder'
+import { weakMemoize } from './merge'
+import { isObject, get } from './utils'
+import { Properties } from './StyleProperties2'
+import { cellx } from 'cellx' 
 
 interface TextProperties {
   /* Семейство шрифта */
-  fontFamily?: string
+  fontFamily: string
   /* Размер шрифта */
-  fontSize?: keyof Tokens['font']['fontSize'] | number | (string & {})
+  fontSize: keyof Tokens['font']['fontSize'] | number | (string & {})
   /* Высота текстовой строки */
-  lineHeight?: keyof Tokens['font']['lineHeight'] | 'inherit' | number
+  lineHeight: keyof Tokens['font']['lineHeight'] | 'inherit' | number
   /* Межбуквенный интервал */
-  letterSpacing?: number
+  letterSpacing: number
   /* Начертание шрифта */
-  fontWeight?: 'light' | 'normal' | 'bold' | number
+  fontWeight: 'light' | 'normal' | 'bold' | number
   /* Курсив */
-  italic?: boolean
+  italic: boolean
   /* Текст в одну строку */
-  noWrap?: boolean
+  noWrap: boolean
   /* Многострочный текст */
-  wrap?: boolean
+  wrap: boolean
   /* Сохранить форматирование текста */
-  pre?: boolean
+  pre: boolean
   /* Текст заглавными буквами */
-  uppercase?: boolean
+  uppercase: boolean
   /* Троеточие в конце текста */
-  truncate?: boolean
+  truncate: boolean
   /* Контейнер текста по высоте строчных букв */
-  crop?: boolean
+  crop: boolean
   /* Сглаживание шрифта */
-  smoothing?: 'auto' | 'antialiased' | 'subpixel'
+  smoothing: 'auto' | 'antialiased' | 'subpixel'
 }
 
 interface DimensionProperties {
   /* Ширина блока */
-  width?: number | string
+  width: number | string
   /* Максимальная ширина блока */
-  maxWidth?: number | string
+  maxWidth: number | string
   /* Минимальная ширина блока */
-  minWidth?: number | string
+  minWidth: number | string
   /* Высота блока */
-  height?: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
+  height: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
   /* Минимальная высота блока */
-  minHeight?: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
+  minHeight: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
   /* Максимальная высота блока */
-  maxHeight?: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
-  /* Уменьшать при нехватке пространства */
-  shrink?: boolean
-  /* Занять все возможзное пространство */
-  grow?: boolean
+  maxHeight: keyof Tokens['dimension']['rowHeight'] | 'auto' | number | (string & {})
 }
 
-interface VisibilityProperties {
+interface EffectProperties {
   /* Видимость блока */
-  visible?: boolean
-  /* Прозрачность блока */
-  opacity?: number
+  visible: boolean
+  /* Прозрачность */
+  opacity: number
+  /* Тень */
+  shadow: keyof Tokens['shadow'] | (string & {})
+  /* Анимация */
+  transition: keyof Tokens['transition']
 }
 
 type SpaceValues = keyof Tokens['space'] | 'auto' | number
 
 interface MarginProperties {
   /* Внешний отступ со всех сторон */
-  m?: SpaceValues
+  m: SpaceValues
   /* Внешний отступ слева и справа */
-  mx?: SpaceValues
+  mx: SpaceValues
   /* Внешний отступ сверху и снизу */
-  my?: SpaceValues
+  my: SpaceValues
   /* Внешний отступ сверху */
-  mt?: SpaceValues
+  mt: SpaceValues
   /* Внешний отступ справа */
-  mr?: SpaceValues
+  mr: SpaceValues
   /* Внешний отступ снизу */
-  mb?: SpaceValues
+  mb: SpaceValues
   /* Внешний отступ слева */
-  ml?: SpaceValues
+  ml: SpaceValues
 }
 
 interface PaddingProperties {
   /* Внутренний отступ */
-  p?: SpaceValues
+  p: SpaceValues
   /* Внутренний отступ слева и справа */
-  px?: SpaceValues
+  px: SpaceValues
   /* Внутренний отступ сверху и снизу */
-  py?: SpaceValues
+  py: SpaceValues
   /* Внутренний отступ сверху */
-  pt?: SpaceValues
+  pt: SpaceValues
   /* Внутренний отступ справа */
-  pr?: SpaceValues
+  pr: SpaceValues
   /* Внутренний отступ снизу */
-  pb?: SpaceValues
+  pb: SpaceValues
   /* Внутренний отступ слева */
-  pl?: SpaceValues
+  pl: SpaceValues
 }
 
 type Align = 'left' | 'center' | 'right' | 'justify'
@@ -97,126 +101,143 @@ type Valign = 'top' | 'middle' | 'bottom' | 'baseline' | 'stretch'
 
 interface LayoutProperties {
   /* Тип отображения элемента */
-  display?: 'block' | 'inline' | 'inline-block' | 'flex' | 'inline-flex'
+  display: 'block' | 'inline' | 'inline-block' | 'flex' | 'inline-flex'
   /* Вертикальное направление дочерних элементов */
-  column?: boolean
-  /* Блочное поведение */
-  block?: boolean
-  /* Строчное поведение */
-  inline?: boolean
+  column: boolean
+  /* Растягивается на всю ширину */
+  stretch: boolean
   /* Горизонтальное выравнивание дочерних блоков */
-  align?: Align
+  align: Align
   /* Горизонтальное выравнивание */
-  alignSelf?: Align
+  alignSelf: Align
   /* Вертикальное выравнивание */
-  valignSelf?: Valign
+  valignSelf: Valign
   /* Вертикальное выравнивание дочерних блоков */
-  valign?: Valign
+  valign: Valign
   /* Переносить блоки на следующие строки если не хватило места */
-  wrap?: boolean
+  wrap: boolean
   /* Положение элемента в потоке */
-  position?: 'relative' | 'absolute' | 'static' | 'fixed'
+  position: 'relative' | 'absolute' | 'static' | 'fixed'
   /* Расстояние от верхнего края */
-  top?: number
+  top: number
   /* Расстояние от нижнего края */
-  bottom?: number
+  bottom: number
   /* Расстояние от левого края */
-  left?: number
+  left: number
   /* Расстояние от правого края */
-  right?: number
-  /* Добавляет скролл */
-  scroll?: boolean
+  right: number
   /* Порядок элементов */
-  order?: number
+  order: number
+  /* Уменьшать при нехватке пространства */
+  shrink: boolean
+  /* Занять все возможзное пространство */
+  grow: boolean
   /* Отображение контента за пределами элемента */
-  overflow?: 'hidden' | 'visible' | 'scroll' | 'auto'
+  overflow: 'hidden' | 'visible' | 'scroll' | 'auto'
+  /* Позиция элемента по оси Z */
+  zIndex: keyof Tokens['zIndex'] | number
 }
 
 type BorderStyle = 'solid' | 'dotted' | 'dashed' | 'none'
 
 interface BorderProperties {
   /* Стиль границ */
-  borderStyle?: BorderStyle
+  borderStyle: BorderStyle
   /* Радиус границ */
-  borderRadius?: keyof Tokens['dimension']['borderRadius'] | 'circle' | number
+  borderRadius: keyof Tokens['dimension']['borderRadius'] | 'circle' | number
   /* Ширина границы */
-  borderWidth?: number
+  borderWidth: number
   /* Ширина верхней границы */
-  borderTopWidth?: number
+  borderTopWidth: number
   /* Ширина правой границы */
-  borderRightWidth?: number
+  borderRightWidth: number
   /* Ширина нижней границы */
-  borderBottomWidth?: number
+  borderBottomWidth: number
   /* Ширина левой границы */
-  borderLeftWidth?: number
+  borderLeftWidth: number
   /* Стиль верхней границы */
-  borderTopStyle?: BorderStyle
+  borderTopStyle: BorderStyle
   /* Стиль правой границы */
-  borderRightStyle?: BorderStyle
+  borderRightStyle: BorderStyle
   /* Стиль нижней границы */
-  borderBottomStyle?: BorderStyle
+  borderBottomStyle: BorderStyle
   /* Стиль левой границы */
-  borderLeftStyle?: BorderStyle
+  borderLeftStyle: BorderStyle
+  /* Форма фигуры */
+  shape: 'pill' | 'square' | 'circle'
+}
+
+interface InteractiveProperties {
+  /* Сделать элемент фокусируемым */
+  focus: boolean
+  /* Внешний вид курсора над элементом */
+  cursor: string
+  /* Разрешить выделение */
+  userSelect: boolean
+  /* Реакция элемента на события */
+  pointerEvents: boolean
 }
 
 interface OtherProperties {
-  /* Сделать элемент фокусируемым */
-  focus?: boolean
   /* Цветовая схема элемента */
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  variant: 'primary' | 'secondary' | 'success' | 'warning' | 'error'
   /* Соседний селектор */
-  adjacentSelector?: string
-  /* Форма фигуры */
-  shape?: 'pill' | 'square' | 'circle'
-  /* Тень */
-  shadow?: keyof Tokens['shadow'] | (string & {})
-  /* Внешний вид курсора над элементом */
-  cursor?: string
-  /* Разрешить выделение */
-  userSelect?: boolean
+  adjacentSelector: string
   /* Тестовый идентификатор */
-  marker?: string
-  /* Позиция элемента по оси Z */
-  zIndex?: keyof Tokens['zIndex'] | number
-  // Анимация
-  transition?: keyof Tokens['transition']
+  marker: string
+  /* Тег элемента */
+  as: keyof JSX.IntrinsicElements
 }
 
 type Colors = keyof Tokens['palette'] | 'transparent'
 
 interface ColorProperties {
   /* Цвет контента */
-  color?: Colors
+  color: Colors
   /* Цвет фона */
-  bg?: Colors
+  bg: Colors
   /* Цвет ганиц */
-  borderColor?: Colors
+  borderColor: Colors
   /* Цвет текста у плейсхолдера */
-  placeholderColor?: Colors
+  placeholderColor: Colors
 }
 
-export interface StyleProperties extends
+type Responsive<T extends object> = {
+  [Key in keyof T]?: T[Key] | (T[Key] | null)[]
+}
+
+// type Tuple<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never;
+// type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N ? R : _TupleOf<T, N, [T, ...R]>;
+
+// type Tuple9<T> = Tuple<T, 9>;
+// type Board9x9<P> = Tuple9<Tuple9<P>>;
+
+interface Properties extends
   TextProperties,
   DimensionProperties,
   PaddingProperties,
   MarginProperties,
   BorderProperties,
   ColorProperties,
-  OtherProperties,
-  VisibilityProperties,
-  LayoutProperties {}
+  EffectProperties,
+  LayoutProperties,
+  InteractiveProperties {}
+
+export interface StyleProperties extends
+  Responsive<Properties>,
+  Partial<OtherProperties> {}
 
 export interface StateSelectors {
   /* Состояние не активного элемента */
-  disabled?: Partial<StyleProperties>
+  disabled?: Partial<Properties>
   /* Состояние наведения */
-  hover?: Partial<StyleProperties>
+  hover?: Partial<Properties>
   /* Состояние нажатия */
-  active?: Partial<StyleProperties>
+  active?: Partial<Properties>
   /* Состояние посещенного элемента */
-  visited?: Partial<StyleProperties>
-  /* Состояние в выбранном состоянии */
-  checked?: Partial<StyleProperties>
+  visited?: Partial<Properties>
+  /* Состояние выбора */
+  checked?: Partial<Properties>
 }
 
 const states = {
@@ -224,11 +245,10 @@ const states = {
   visited: '&:visited',
   hover: '&:hover',
   active: '&:not(:disabled):active',
-  disabled: '&:disabled, &[aria-disabled=true]',
+  disabled: '&:disabled, &[aria-disabled=true], &[disabled]',
 }
-const stateSelectors = (state: string, value: string) => `${states[state]}{${value}}`
 
-type StyleFn = (value: any, params: StyleProperties, tokens: Tokens) => string
+type StyleFn = (value: any, params: Partial<Properties>, tokens: Tokens) => string
 const fontFamily: StyleFn = (value) => `font-family: ${value};`
 const fontSize: StyleFn = (value, _, { font }) => `font-size: ${font.fontSize[value] || value}px;`
 const lineHeight: StyleFn = (value, _, { font }) => `line-height: ${font.lineHeight[value] || value};`
@@ -385,7 +405,7 @@ const left: StyleFn = (value) => `left: ${execDimension(value)};`
 const overflow: StyleFn = (value) => `overflow: ${value};`
 const visible: StyleFn = (value) => `visibility: ${value ? 'visible' : 'hidden'};`
 const opacity: StyleFn = (value) => `opacity: ${value};`
-const focus: StyleFn = (value, __, { focus }) => `
+const focus: StyleFn = (value, _, { focus }) => `
   outline: none;
   
   ${value ? `
@@ -396,7 +416,7 @@ const focus: StyleFn = (value, __, { focus }) => `
     }
   ` : ''}
 `
-const disabled: StyleFn = (value) => value ? `pointer-events: none;` : ''
+const pointerEvents: StyleFn = (value) => value ? `pointer-events: ${value};` : ''
 const shape: StyleFn = (value) => 
   value === 'circle' ? 'border-radius: 50%;' :
   value === 'pill' ? 'border-radius: 100px;' :
@@ -426,17 +446,22 @@ const display: StyleFn = (value, params) => {
   if (params.crop || params.truncate) {
     result = 'inline-block'
   }
-  if (params.inline) {
-    result = inline[value]
-  }
-  if (params.block) {
+  if (params.stretch === true) {
     result = block[value]
+  }
+  if (params.stretch === false) {
+    result = inline[value]
   }
 
   return `display: ${result};`
 }
 
-const stylesMap = {
+type ExcludedStyles = 'p' | 'px' | 'py' | 'm' | 'mx' | 'my' | 'stretch' | 'variant' | 'marker' | 'adjacentSelector' | 'crop' | 'as'
+type StyleMap = {
+  [key in Exclude<keyof StyleProperties, ExcludedStyles>]-?: StyleFn
+}
+
+const stylesMap: StyleMap = {
   fontFamily,
   fontSize,
   lineHeight,
@@ -488,7 +513,7 @@ const stylesMap = {
   visible,
   opacity,
   focus,
-  disabled,
+  pointerEvents,
   shape,
   shadow,
   zIndex,
@@ -505,8 +530,47 @@ const stylesMap = {
   ml: space('margin-left'),
 }
 
+const shortHands = {
+  m: (value: any) => ({ mt: value, mr: value, mb: value, ml: value }),
+  mx: (value: any) => ({ mr: value, ml: value }),
+  my: (value: any) => ({ mt: value, mb: value }),
+  p: (value: any) => ({ pt: value, pr: value, pb: value, pl: value }),
+  px: (value: any) => ({ pr: value, pl: value }),
+  py: (value: any) => ({ pt: value, pb: value }),
+}
+
+export function expandShorthands<T>(
+  styles: T
+): T {
+  let results = {} as T
+
+  if (!isObject(styles)) return styles
+
+  for (let [key, value] of Object.entries(styles)) {
+    if (shortHands[key]) {
+      Object.assign(results, shortHands[key](value))
+
+      continue
+    }
+    if (states[key]) {
+      results[key] = expandShorthands(value)
+    }
+
+    results[key] = value
+  }
+
+  return results
+}
+
+const createCacheWithBreakpoint = weakMemoize((breakpoint: string[]) => {
+  return breakpoint.map((value) => `@media screen and (min-width: ${value})`)
+})
+
+
 export const objectStyleToString = (props: any, tokens: Tokens, params: Slot): string => {
   let result = 'box-sizing: border-box;'
+  const responsive: string[] = []
+  const breakpoint = createCacheWithBreakpoint(tokens.breakpoint)
 
   for (let prop in params) {
     let propValue = params[prop]
@@ -515,13 +579,157 @@ export const objectStyleToString = (props: any, tokens: Tokens, params: Slot): s
       propValue = propValue(props)
     }
 
-    if ((['disabled', 'hover', 'active', 'visited', 'checked']).includes(prop)) {
-      result += stateSelectors(prop, objectStyleToString(props, tokens, propValue))
+    if (states[prop]) {
+      result += `${states[prop]}{${objectStyleToString(props, tokens, propValue)}}`
+    }
+    // перенести проверку вверх могут быть пропы функции
+    if (typeof stylesMap[prop] === 'function' && propValue != null) {
+      if (Array.isArray(propValue)) {
+        propValue.forEach((value, i) => {
+          if (value !== null) {
+            responsive[i] = (responsive[i] || '') + stylesMap[prop](value, params, tokens)
+          }
+        })
+      } else {
+        result += stylesMap[prop](propValue, params, tokens)
+      }
+    }
+  }
+
+  if (responsive.length) {
+    responsive.forEach((value, i) => {
+      result += i === 0 ? value : `${breakpoint[i - 1]}{${value}}`
+    })
+  }
+
+  return result
+}
+
+export const objectStyleToString3 = (props: any, tokens: Tokens, params: Slot): string => {
+  const breakpoint = createCacheWithBreakpoint(tokens.breakpoint)
+  let responsive = Array.from(tokens.breakpoint, () => ({}));
+
+  for (let property in params) {
+    let propValue = params[property]
+
+    if (typeof propValue === 'function') {
+      propValue = propValue(props)
     }
 
-    if (typeof stylesMap[prop] === 'function' && propValue != null) {
-      result += stylesMap[prop](propValue, params, tokens)
+    if (typeof stylesMap[property] === 'function' && propValue != null) {
+      if (Array.isArray(propValue)) {
+        propValue.forEach((value, i) => {
+          if (value !== null) {
+            responsive[i][property] = value
+          }
+        })
+      } else {
+        responsive[0][property] = propValue
+      }
     }
+  }
+
+  let result = 'box-sizing: border-box;'
+
+  responsive.forEach((properties, i) => {
+    let str = ''
+    for (let property in properties) {
+      if (properties.hasOwnProperty(property)) {
+        str += stylesMap[property](properties[property], responsive[i], tokens)
+      }
+    }
+
+    if (i === 0) {
+      result += str
+    } else {
+      result += `${breakpoint[i - 1]}{${str}}`
+    }
+  })
+  return result
+}
+
+// export const objectStyleToString2 = (props: any, tokens: Tokens, properties: Slot): string => {
+//   let responsive = Array.from(tokens.breakpoint, () => ({}));
+
+//   for (let property in properties) {
+//     let propValue = properties[property]
+
+//     if (typeof propValue === 'function') {
+//       propValue = propValue(props)
+//     }
+
+//     if (states[property]) {
+//       responsive[0][property] = propValue
+//       continue
+//     }
+
+//     if (typeof Properties.properties[property] === 'function' && propValue != null) {
+//       if (Array.isArray(propValue)) {
+//         propValue.forEach((value, i) => {
+//           if (value !== null) {
+//             responsive[i][property] = Properties.properties[property].getTokenValue(tokens) || value
+//           }
+//         })
+//       } else {
+//         responsive[0][property] = Properties.properties[property].getTokenValue(tokens) || propValue
+//       }
+//     }
+//   }
+
+//   let result = 'box-sizing: border-box;'
+//   const breakpoint = createCacheWithBreakpoint(tokens.breakpoint)
+
+//   responsive.forEach((properties, i) => {
+//     let str = ''
+//     for (let property in properties) {
+//       str += Properties.properties[property](properties[property], tokens, properties)
+//     }
+
+//     if (i === 0) {
+//       result += str
+//     } else {
+//       result += `${breakpoint[i - 1]}{${str}}`
+//     }
+//   })
+
+//   return result
+// }
+
+
+
+export const objectStyleToString11 = (props: any, tokens: Tokens, params: Slot): string => {
+  let result = 'box-sizing: border-box;'
+  const responsive: string[] = []
+  const breakpoint = createCacheWithBreakpoint(tokens.breakpoint)
+
+  for (let prop in params) {
+    let propValue = params[prop]
+
+    if (typeof propValue === 'function') {
+      propValue = propValue(props)
+    }
+
+    if (states[prop]) {
+      result += `${states[prop]}{${objectStyleToString(props, tokens, propValue)}}`
+    }
+    // перенести проверку вверх могут быть пропы функции
+    const fn = Properties.get(prop as any)
+    if (fn && propValue != null) {
+      if (Array.isArray(propValue)) {
+        propValue.forEach((value, i) => {
+          if (value !== null) {
+            responsive[i] = (responsive[i] || '') + fn(value, tokens)
+          }
+        })
+      } else {
+        result += fn(propValue, tokens)
+      }
+    }
+  }
+  if (responsive.length) {
+    responsive.forEach((value, i) => {
+      result += i === 0 ? value : `${breakpoint[i - 1]}{${value}}`
+    })
   }
 
   return result

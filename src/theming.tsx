@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Theme } from './theme'
-import { mergeTheme } from './mergeTheme'
+import { mergeTheme } from './merge'
 
 type ThemeProviderProps = {
-  theme?: Theme,
+  theme?: Partial<Theme>,
   children: any
 }
 

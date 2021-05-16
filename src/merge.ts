@@ -1,7 +1,4 @@
-import { ThemeBuilder } from './ThemeBuilder'
-
-const isObject = (value: any): value is object => value && value.constructor && value.constructor === Object
-const isThemeBuilder = (value: any): value is ThemeBuilder<any> => value instanceof ThemeBuilder
+import { isObject, isThemeBuilder } from './utils'
 
 function cloneUnlessOtherwiseSpecified(value: any) {
 	return isObject(value)
@@ -34,27 +31,48 @@ export function mergeObject(target: object, source: object): object {
 
 type UnaryFn<Arg, Return> = (arg: Arg) => Return
 
-const weakMemoize = <Arg extends object, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
+export const weakMemoize = <Arg extends object | undefined, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
   let cache = new WeakMap()
   
   return arg => {
-    if (cache.has(arg)) return cache.get(arg)
+    if (arg === undefined) return func(arg)
+
+    if (cache.has(arg as object)) return cache.get(arg as object)
 
     let result = func(arg)
-    cache.set(arg, result)
+    cache.set(arg as object, result)
     
     return result
   }
 }
 
-let createCacheWithTheme = weakMemoize(outerTheme => {
+export const memoize = <Arg extends any, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
+  let cache = new Map()
+  
+  return arg => {
+    if (arg === undefined) return func(arg)
+
+    const hash = JSON.stringify(arg)
+
+    if (cache.has(hash)) return cache.get(hash)
+
+    let result = func(arg)
+    cache.set(hash, result)
+    
+    return result
+  }
+}
+
+const createCacheWithTheme = weakMemoize(outerTheme => {
   return weakMemoize(theme => {
-    return mergeObject(outerTheme, theme)
+    if (isObject(outerTheme) && isObject(theme)) {
+      return mergeObject(outerTheme, theme)
+    } else {
+      return outerTheme
+    }
   })
 })
 
-export function mergeTheme<T extends object>(target: T, source: object | void): T {
-  if (!source) return target
-
+export function mergeTheme<T extends object>(target: T, source?: object): T {
   return createCacheWithTheme(target)(source) as T
 }
