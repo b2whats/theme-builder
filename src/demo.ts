@@ -1,6 +1,6 @@
-import { Tokens } from './tokens'
+import { createBaseToken } from './tokens'
 
-export const tokens: Tokens = {
+export const tokens = createBaseToken({
   focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
   font: {
     fontSize: {
@@ -183,4 +183,4 @@ export const tokens: Tokens = {
   },
 
   breakpoint: ['40em', '52em', '64em', '80em']
-}
+} as const)

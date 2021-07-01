@@ -457,6 +457,24 @@ const display: StyleFn = (value, params) => {
 }
 
 type ExcludedStyles = 'p' | 'px' | 'py' | 'm' | 'mx' | 'my' | 'stretch' | 'variant' | 'marker' | 'adjacentSelector' | 'crop' | 'as'
+
+type ExcludedStyles1 =
+  | 'p'
+  | 'px' 
+  | 'py' 
+  | 'm' 
+  | 'mx' 
+  | 'my' 
+  | 'stretch' 
+  | 'variant' 
+  | 'marker' 
+  | 'adjacentSelector' 
+  | 'crop' 
+  | 'as'
+
+
+
+
 type StyleMap = {
   [key in Exclude<keyof StyleProperties, ExcludedStyles>]-?: StyleFn
 }

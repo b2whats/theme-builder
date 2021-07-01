@@ -6,7 +6,7 @@ function cloneUnlessOtherwiseSpecified(value: any) {
 		: value
 }
 
-export function mergeObject(target: object, source: object): object {
+export function mergeObject(target: object, source: object): Record<string, any> {
   const result = {}
 
   Object.keys(target).forEach((key) => {
@@ -31,16 +31,27 @@ export function mergeObject(target: object, source: object): object {
 
 type UnaryFn<Arg, Return> = (arg: Arg) => Return
 
-export const weakMemoize = <Arg extends object | undefined, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
+export const weakMemoize = <Arg extends object, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
   let cache = new WeakMap()
   
   return arg => {
-    if (arg === undefined) return func(arg)
-
-    if (cache.has(arg as object)) return cache.get(arg as object)
+    if (cache.has(arg)) return cache.get(arg)
 
     let result = func(arg)
-    cache.set(arg as object, result)
+    cache.set(arg, result)
+    
+    return result
+  }
+}
+
+export const primitiveMemoize = <Arg extends string | number | null | undefined, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
+  let cache = {} as any
+  
+  return arg => {
+    if (cache[arg]) return cache[arg]
+
+    let result = func(arg)
+    cache[arg] = result
     
     return result
   }
