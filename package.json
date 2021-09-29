@@ -6,7 +6,7 @@
   "scripts": {
     "start": "snowpack dev",
     "prod": "snowpack build",
-    "bench": "ts-node benchmark/themeBuilder.ts",
+    "bench": "ts-node benchmark/css.ts",
     "test": "jest"
   },
   "author": "",
@@ -31,6 +31,6 @@
     "snowpack": "^2.18.5",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
-    "typescript": "^4.1.5"
+    "typescript": "^4.3.5"
   }
 }

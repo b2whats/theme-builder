@@ -47,3 +47,61 @@ export const flatObject = <
   O extends Record<string, any>,
   D extends string = '.'
 >(object: O, delimiter?: D): FlatObjectReturn<O, D> => Object.fromEntries(flatObjectEntries(object, delimiter || '.')) as any
+
+
+
+
+type Cast<A, B> = A extends B ? A : B
+
+type Narrowable =
+| string
+| number
+| bigint
+| boolean
+
+export type Narrow<A> = Cast<A,
+  | []
+  | (A extends Narrowable ? A : never)
+  | ({ [K in keyof A]: Narrow<A[K]> })
+>
+
+type FlattenType<T extends Record<string, any>> = T extends unknown ? T : never
+
+type LeavesEntries<
+  O,
+  Delimiter extends string = '.',
+  Prefix extends string = '',
+  Key extends keyof O = keyof O,
+  I extends number = 5
+> = [I] extends [never] ? never : Key extends string | number
+  ? O[Key] extends readonly any[] | any[]
+    ? LeavesEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], keyof any[]>, Prev[I]>
+  : O[Key] extends Record<string, any>
+    ? LeavesEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], Exclude<keyof any[], number>>, Prev[I]>
+    : [`${Prefix}${Key}`, CastToPrimitive<O[Key]>]
+  : never
+
+
+type CastToPrimitive<T> =
+  T extends string ? string :
+  T extends number ? number :
+  T extends any ? T :
+  never
+
+type PathsEntries<
+  O,
+  Delimiter extends string = '.',
+  Prefix extends string = '',
+  Key extends keyof O = keyof O,
+  I extends number = 5
+> = [I] extends [never] ? never : Key extends string | number ?
+  O[Key] extends readonly any[] | any[] ?
+    | PathsEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], keyof any[]>, Prev[I]>
+    | [`${Prefix}${Key}`, Exclude<keyof O[Key], keyof any[]>] :
+  O[Key] extends Record<string, any> ?
+    | [`${Prefix}${Key}`, keyof O[Key]]
+    | PathsEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, keyof O[Key], Prev[I]> :
+  [`${Prefix}${Key}`, CastToPrimitive<O[Key]>] : never
+
+export type ObjectPaths<O extends Record<string, any>, Entries extends [string, any] = PathsEntries<O>> = { [K in Entries as K[0] ]: K[1] }
+export type ObjectLeaves<O extends Record<string, any>, Entries extends [string, any] = LeavesEntries<O>> = { [K in Entries as K[0] ]: K[1] }

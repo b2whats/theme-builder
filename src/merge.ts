@@ -85,5 +85,6 @@ const createCacheWithTheme = weakMemoize(outerTheme => {
 })
 
 export function mergeTheme<T extends object>(target: T, source?: object): T {
-  return createCacheWithTheme(target)(source) as T
+  // return createCacheWithTheme(target)(source) as T
+  return '' as any
 }
