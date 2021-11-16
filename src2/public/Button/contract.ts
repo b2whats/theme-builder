@@ -1,4 +1,4 @@
-import { StyleProperties } from '../../src/StyleProperties'
+import { StyleProperties } from '../../StyleProperties'
 
 export interface ButtonProps extends StyleProperties {
   /** Иконка слева */

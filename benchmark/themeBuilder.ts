@@ -1,9 +1,9 @@
 // @1ts-nocheck
 import Benchmark from 'benchmark'
-import { ThemeBuilder, utils, ComponentTheme, Slot } from '../src/ThemeBuilder'
-import type { StyleProperties } from '../src/StyleProperties'
-import { tokens } from '../public/tokens'
-import { mergeObject, weakMemoize, memoize } from '../src/merge'
+import { ThemeBuilder, utils, ComponentTheme, Slot } from '../src2/ThemeBuilder'
+import type { StyleProperties } from '../src2/StyleProperties'
+import { tokens } from '../src2/public/tokens'
+import { mergeObject, weakMemoize, memoize } from '../src2/merge'
 
 interface ButtonProps extends StyleProperties {
   size?: 's' | 'm' | 'l'

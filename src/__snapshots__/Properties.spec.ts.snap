@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Properties compute - with token no resolve 1`] = `"color: #hex;"`;
+
+exports[`Properties compute - with token resolve (deep array nullish) 1`] = `
+Array [
+  "font-size: 11px;",
+  undefined,
+  "font-size: 15px;",
+]
+`;
+
+exports[`Properties compute - with token resolve (deep array) 1`] = `
+Array [
+  "font-size: 11px;",
+  "font-size: 13px;",
+  "font-size: 15px;",
+]
+`;
+
+exports[`Properties compute - with token resolve (deep) 1`] = `"font-size: 11px;"`;
+
+exports[`Properties compute - with token resolve 1`] = `"color: #FFEDEE;"`;
+
+exports[`Properties compute - with token(boolean array) resolve 1`] = `
+Array [
+  "
+      &&:focus{
+        box-shadow: 0px 0px 2px 3px black;
+        position: relative;
+        z-index: 2;
+      }
+    ",
+  "",
+]
+`;
+
+exports[`Properties compute - with token(boolean) no resolve 1`] = `""`;
+
+exports[`Properties compute - with token(boolean) resolve 1`] = `
+"
+      &&:focus{
+        box-shadow: 0px 0px 2px 3px black;
+        position: relative;
+        z-index: 2;
+      }
+    "
+`;
+
+exports[`Properties compute - with token(number) resolve 1`] = `"box-shadow: 0px 1px 2px black;"`;
+
+exports[`Properties compute - without token 1`] = `"display: block;"`;

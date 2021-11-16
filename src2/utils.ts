@@ -1,6 +1,9 @@
+import type { ThemeBuilder } from './ThemeBuilder'
+
 export const isObject = (value: any): value is object => value && value.constructor && value.constructor === Object
 export const isFunction = (value: any): value is Function => typeof value === 'function'
 export const isIterable = (value: any): value is object => Object(value) === value
+export const isThemeBuilder = (value: any): value is ThemeBuilder<any> => value && value.constructor && value.constructor.name === 'ThemeBuilder'
 
 export function get(
   obj: object,
@@ -59,11 +62,7 @@ export type Narrow<A> = Cast<A,
   | ({ [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]> })
 >
 
-export type FlattenType<T > = T extends unknown ? T : never
-
-export type FlattenObjectType<O extends object> = FlattenType<{
-  [K in keyof O]: O[K]
-}>
+type FlattenType<T extends Record<string, any>> = T extends unknown ? T : never
 
 type LeavesEntries<
   O,
@@ -106,10 +105,6 @@ export type ObjectLeaves<O extends Record<string, any>, Entries extends [string,
 
 type UnionToIntersection<U> =   (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type UnionToFunctions<U> = U extends unknown ? (k: U) => void : never
-export type IsUnion<T> = boolean extends T ? false :
-  [T] extends [UnionToIntersection<T>] ? false : true
-
-export type UnionLast<U> = UnionToIntersection<UnionToFunctions<U>>
 
 type IntersectionOf<T> =
   T extends { (a: infer A): void; (b: infer B): void; (c: infer C): void; (d: infer D): void; (e: infer E): void; (f: infer F): void; (g: infer G): void; (h: infer H): void; } ? [A, B, C, D, E, F, G, H] :
@@ -123,6 +118,3 @@ type IntersectionOf<T> =
   never
 
 export type UnionToTuple<T> = IntersectionOf<UnionToIntersection<UnionToFunctions<T>>>
-
-export type TupleOf<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never;
-type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N ? R : _TupleOf<T, N, [T, ...R]>;

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "snowpack dev",
     "prod": "snowpack build",
-    "bench": "ts-node benchmark/css.ts",
+    "bench": "ts-node benchmark/Properties.ts",
     "test": "jest"
   },
   "author": "",

@@ -4,9 +4,8 @@ module.exports = {
     public: '/',
     src: '/dist',
   },
-  exclude: ['./exl'],
   plugins: [
-    //'@snowpack/plugin-typescript',
+    '@snowpack/plugin-typescript',
   ],
   install: [
     /* ... */

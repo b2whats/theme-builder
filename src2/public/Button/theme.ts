@@ -1,4 +1,4 @@
-import { ThemeBuilder, utils, ComponentTheme, Slot } from '../../src/ThemeBuilder'
+import { ThemeBuilder, utils, ComponentTheme, Slot } from '../../ThemeBuilder'
 import { ButtonProps } from './contract'
 
 export type ButtonTheme = ComponentTheme<ButtonProps, {

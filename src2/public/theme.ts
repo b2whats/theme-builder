@@ -1,4 +1,4 @@
-import { Theme } from '../src/theme'
+import { Theme } from '../theme'
 import { tokens } from './tokens'
 import { buttonTheme } from './Button/index'
 

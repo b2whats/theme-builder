@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from './Button/Button';
 import { otherButtonTheme } from './Button/theme';
-import { ThemeProvider } from '../src/theming'
+import { ThemeProvider } from '../theming'
 import { theme } from './theme'
 import { cellx, Cell } from 'cellx' 
 

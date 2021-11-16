@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "./build",
     "lib": ["es6", "es2019", "dom"],
     "target": "ES5",
     "moduleResolution": "node",
@@ -16,6 +17,7 @@
     "isolatedModules": true,
     "typeRoots": ["node_modules/@types"],
   },
-  "include": ["src", "public", "benchmark"],
+  //"include": ["src", "public", "benchmark"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

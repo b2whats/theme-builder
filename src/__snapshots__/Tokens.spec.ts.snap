@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tokens 1`] = `
+Tokens {
+  "scheme": Object {
+    "breakpoints": Array [
+      "70em",
+      "50em",
+      "30em",
+    ],
+    "focus": "0px 0px 2px 3px black",
+    "font": Object {
+      "fontSize": Object {
+        "l": 15,
+        "m": 13,
+        "s": 11,
+      },
+    },
+    "palette": Object {
+      "blue": "#FFE6E6",
+      "green": "#FFC5C6",
+      "primary": "blue",
+      "red": "#FFEDEE",
+    },
+    "shadow": Object {
+      "1": "0px 1px 2px black",
+      "2": "3px 4px 5px black",
+    },
+  },
+}
+`;
