@@ -29,21 +29,6 @@ suite.add('number token(cache)', function() {
   properties.compute('shadow', 1, tokens.scheme)
 })
 
-suite.add('nested token(cache) array', function() {
-  properties.compute('fontSize', ['s', 'm', 'l'], tokens.scheme)
-})
-suite.add('without token(cache) array', function() {
-  properties.compute('display', ['block', 'flex', 'inline' ], tokens.scheme)
-})
-
-suite.add('boolean token(cache) array', function() {
-  properties.compute('focus', [true, false, true], tokens.scheme)
-})
-
-suite.add('number token(cache) array', function() {
-  properties.compute('shadow', [1, 2, 1], tokens.scheme)
-})
-
 // const na: ['s', 'm', 'l'] = ['s', 'm', 'l']
 // suite.add('nested token(cache) array', function() {
 //   properties.compute('fontSize', na, tokens.scheme)

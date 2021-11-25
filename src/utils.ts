@@ -1,11 +1,12 @@
 export const isObject = (value: any): value is object => value && value.constructor && value.constructor === Object
 export const isFunction = (value: any): value is Function => typeof value === 'function'
+export const isString = (value: any): value is string => typeof value === 'string'
 export const isIterable = (value: any): value is object => Object(value) === value
 
 export function get(
   obj: object,
   path: string | number,
-) {
+): any {
   const key = typeof path === "string" ? path.split(".") : [path]
 
   for (let index = 0; index < key.length; index += 1) {
@@ -124,5 +125,57 @@ type IntersectionOf<T> =
 
 export type UnionToTuple<T> = IntersectionOf<UnionToIntersection<UnionToFunctions<T>>>
 
-export type TupleOf<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never;
-type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N ? R : _TupleOf<T, N, [T, ...R]>;
+export type TupleOf<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never
+type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N ? R : _TupleOf<T, N, [T, ...R]>
+export type DeepPartial<T> = T extends any ? {
+  [P in keyof T]?: 
+    T[P] extends any[] | [] ? T[P] :
+    T[P] extends Record<string, any> ? DeepPartial<T[P]> :
+    T[P]
+} : never
+
+export function literalValues<T>(obj: Narrow<T>) { return obj }
+
+
+type UnaryFn<Arg, Return> = (arg: Arg) => Return
+export const memoize = <Arg extends any, Return>(func: UnaryFn<Arg, Return>): UnaryFn<Arg, Return> => {
+  const cache = new Map()
+  
+  return arg => {
+    let result = cache.get(arg)
+
+    if (result === undefined) {
+      result = func(arg)
+
+      cache.set(arg, result)
+    }
+
+    return result
+  }
+}
+
+
+export const objectHash = (obj: Record<string, any>): string => {
+  let str = ''
+  
+  for (const key in obj) {
+    const value = obj[key]
+    const type = typeof value
+
+    if (type === 'string' || type === 'number') {
+      str += key + value
+    } else if (Array.isArray(value)){
+      str += key + value.join('|')
+    } else if (value === true) {
+      str += key + 'T;'
+    } else if (value === false) {
+      str += key + 'F;'
+    } else if(value === null || value === undefined) {
+      str += key + 'void;'
+    } else if (type === 'function') {
+      str += key + 'fn;'
+    }
+  }
+
+  return str
+}

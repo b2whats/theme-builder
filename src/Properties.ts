@@ -1,14 +1,16 @@
 import { Tokens } from './Tokens'
-import type { ObjectPaths, FlattenObjectType, UnionLast, TupleOf, UnionToTuple, IsUnion } from './utils'
-import { get } from './utils'
+import type { ObjectPaths, FlattenObjectType, TupleOf, UnionToTuple, IsUnion } from './utils'
+import { get, memoize } from './utils'
+import type { DeepPartial } from './utils'
 
-export type NoInfer<T> = T & {[K in keyof T]: T[K]};
-type MaybeArray<T, N extends number> = Partial<TupleOf<T, N>> | T
+type Nullable<T> = {
+  [K in keyof T]?: T[K] | null 
+}
+type MaybeArray<T, N extends number> = Nullable<TupleOf<T, N>> | T
 type ComputedProperty<Name extends string, AdditionalTypes, Breakpoints extends number = never> = {
-  [key in Name]: MaybeArray<
-    AdditionalTypes,
-    Breakpoints
-  >
+  [key in Name]: [Breakpoints] extends [never]
+    ? AdditionalTypes
+    : MaybeArray<AdditionalTypes, Breakpoints> 
 }
 
 type String = (string & {})
@@ -31,15 +33,21 @@ type PropertyConfig<TokensPath, AdditionalTypes = never> = {
   toString: (value: AdditionalTypes) => string
 }
 
-export class Properties<DefaultTokens extends {}, List = {}, Breakpoints extends number = never> {
+type PropertyValues<Values> = Values extends MaybeArray<infer Values, number> ? Values : Values
+
+
+export class Properties<DefaultTokens extends Record<string, any>, List extends Record<string, any> = {}, Breakpoints extends number = never> {
   tokens: DefaultTokens
-  rules: { [K in keyof List]: (value: List[K], tokens?: DefaultTokens) => string } = {} as any
-  memo: Map<DefaultTokens, Record<string, string | string[]>> = new Map()
-  memo2: Map<DefaultTokens, Record<string, Map<any, string | string[]>>> = new Map()
+  rules: { [K in keyof List]: (value: List[K], tokens?: this['tokens']) => string } = {} as any
+  private breakpointsRule!: {
+    token: string
+    toString: (value: string | number) => string
+  }
+  private cache: Map<object, Record<string, Map<any, string>>> = new Map()
   
   constructor(tokens: Tokens<DefaultTokens>) {
     this.tokens = tokens.scheme
-    this.memo.set(this.tokens, {})
+    this.breakpointsRules = memoize(this.breakpointsRules.bind(this))
   }
 
   private hashValue<T>(value: T): T | string  {
@@ -67,7 +75,7 @@ export class Properties<DefaultTokens extends {}, List = {}, Breakpoints extends
       >,
       Breakpoints
   > {
-    this.rules[name as string] = (value: any, tokens: DefaultTokens = this.tokens) => {
+    this.rules[name] = (value: any, tokens: any) => {
       if (value === null || value === undefined) return ''
 
       if (config.token) {
@@ -83,13 +91,27 @@ export class Properties<DefaultTokens extends {}, List = {}, Breakpoints extends
   breakpoints<
     Token extends keyof TokensPathObject = never,
     TokensPathObject = ObjectPaths<DefaultTokens>
-  >(config: PropertyConfig<Token>)
+  >(config: PropertyConfig<Token, string | number>)
   : Properties<
       DefaultTokens, 
       List,
       UnionToTuple<TokensPathObject[Token]>['length']
   > {
-    return this as any
+    this.breakpointsRule = config as any
+
+    return this
+  }
+
+  breakpointsRules(tokens: this['tokens']): string[] {
+    const result: string[] = []
+    const breakpoints = get(tokens, this.breakpointsRule.token)
+    if (Array.isArray(breakpoints)) {
+      for (let index = 1; index < breakpoints.length; index++) {
+        result.push(this.breakpointsRule.toString(breakpoints[index]))
+      }
+    }
+
+    return result
   }
 
   states<
@@ -103,58 +125,22 @@ export class Properties<DefaultTokens extends {}, List = {}, Breakpoints extends
       ...this.rules,
       ...data,
     }
-    
+
     return this as any
   }
 
-  // hasCache2<
-  //   Name extends keyof List
-  // >(name: Name, value: List[Name], tokens: DefaultTokens): boolean {
-  //   return (this.memo.get(tokens) || {})[name + '/' + value] !== undefined
-  // }
-
   hasCache<
     Name extends keyof List
-  >(name: Name, value: List[Name], tokens: DefaultTokens): boolean {
-    return (this.memo2.get(tokens) || {})[name as string].get(this.hashValue(value)) !== undefined
+  >(name: Name, value: PropertyValues<List[Name]>, tokens: DefaultTokens): boolean {
+    return (this.cache.get(tokens) || {})[name as string].get(this.hashValue(value)) !== undefined
   }
   
-  // compute2<
-  //   Name extends keyof List
-  // >(name: Name, value: List[Name], tokens: DefaultTokens = this.tokens): string | string[] {
-  //   const tokenCache = this.memo.get(tokens)
-  //   const cacheKey = name + '/' + value
-  //   const cacheValue = tokenCache && tokenCache[cacheKey]
-    
-  //   if (cacheValue !== undefined) {
-  //     return cacheValue
-  //   } else {
-  //     let result
-
-  //     if (Array.isArray(value)) {
-  //       result = []
-
-  //       for (let i = 0; i < value.length; i++) {
-  //         result.push(this.rules[name](value[i], tokens))
-  //       }
-  //     } else {
-  //       result = this.rules[name](value, tokens)
-  //     }
-
-  //     if (tokenCache !== undefined) {
-  //       tokenCache[cacheKey] = result
-  //     } else {
-  //       this.memo.set(tokens, {[cacheKey]: result})
-  //     }
-
-  //     return result
-  //   }
-  // }
-
   compute<
     Name extends keyof List
-  >(name: Name, value: List[Name], tokens: DefaultTokens = this.tokens): string | string[] {
-    let cache = this.memo2.get(tokens)
+  >(name: Name, value?: PropertyValues<List[Name]> | null, tokens: this['tokens'] = this.tokens): string {
+    if (!this.rules[name] || value === null || value === undefined) return ''
+    
+    let cache = this.cache.get(tokens)
 
     if (cache === undefined) {
       cache = Object.keys(this.rules).reduce((acc, rule) => {
@@ -163,23 +149,15 @@ export class Properties<DefaultTokens extends {}, List = {}, Breakpoints extends
         return acc
       }, {})
 
-      this.memo2.set(tokens, cache)
+      this.cache.set(tokens, cache)
     }
 
-    let result = cache[name as string].get(this.hashValue(value))
+    let result = cache[name as string].get(value)
 
     if (result === undefined) {
-      if (Array.isArray(value)) {
-        result = []
+      result = this.rules[name](value, tokens)
 
-        for (let i = 0; i < value.length; i++) {
-          result.push(this.rules[name](value[i], tokens))
-        }
-      } else {
-        result = this.rules[name](value, tokens)
-      }
-
-      cache[name as string].set(this.hashValue(value), result)
+      cache[name as string].set(value, result)
     }
 
     return result

@@ -9,16 +9,16 @@ test('Properties compute - without token', () => {
 })
 
 test('Properties compute - with token resolve', () => {
-  const rule = properties.compute('color', 'red', tokens.scheme)
-  const cache = properties.hasCache('color', 'red', tokens.scheme)
+  const rule = properties.compute('color', 'black', tokens.scheme)
+  const cache = properties.hasCache('color', 'black', tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()
 })
 
 test('Properties compute - with token no resolve', () => {
-  const rule = properties.compute('color', '#hex', tokens.scheme)
-  const cache = properties.hasCache('color', '#hex', tokens.scheme)
+  const rule = properties.compute('colorHEX', '#hex', tokens.scheme)
+  const cache = properties.hasCache('colorHEX', '#hex', tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()
@@ -51,30 +51,6 @@ test('Properties compute - with token(boolean) resolve', () => {
 test('Properties compute - with token(boolean) no resolve', () => {
   const rule = properties.compute('focus', false, tokens.scheme)
   const cache = properties.hasCache('focus', false, tokens.scheme)
-
-  expect(cache).toBe(true)
-  expect(rule).toMatchSnapshot()
-})
-
-test('Properties compute - with token(boolean array) resolve', () => {
-  const rule = properties.compute('focus', [true, false], tokens.scheme)
-  const cache = properties.hasCache('focus', [true, false], tokens.scheme)
-
-  expect(cache).toBe(true)
-  expect(rule).toMatchSnapshot()
-})
-
-test('Properties compute - with token resolve (deep array)', () => {
-  const rule = properties.compute('fontSize', ['s', 'm', 'l'], tokens.scheme)
-  const cache = properties.hasCache('fontSize', ['s', 'm', 'l'], tokens.scheme)
-
-  expect(cache).toBe(true)
-  expect(rule).toMatchSnapshot()
-})
-
-test('Properties compute - with token resolve (deep array nullish)', () => {
-  const rule = properties.compute('fontSize', ['s', , 'l'], tokens.scheme)
-  const cache = properties.hasCache('fontSize', ['s', , 'l'], tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()

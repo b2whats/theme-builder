@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useTheme } from '../../theming'
 import { ButtonProps } from './contract'
 import { buttonTheme } from './theme'
