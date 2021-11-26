@@ -8,9 +8,9 @@ const useStyle = createHook(component)
 const test = {
   
 }
-const Slot = useStyle(test as any, {})
+const Slot = useStyle({})
 
 const C = () => {
   const r = useRef<any>()
-  return <Slot ref={r} name='base' test='kk' as='a' className='ddf'  href='ffff'/>
+  return <Slot ref={r} slot=''     href='ffff'/>
 }

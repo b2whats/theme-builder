@@ -1,7 +1,7 @@
 import { css } from '@emotion/css'
 import { mergeTheme } from './merge'
 import type { Properties } from './Properties'
-import type { FlattenObjectType, DeepPartial } from './utils'
+import type { FlattenObjectType, DeepPartial, Tags } from './utils'
 import { objectHash } from './utils'
 
 type OrFunction<Args, Return> = (props: Required<Args>) => Return
@@ -10,14 +10,12 @@ type MaybeFunction<T, Props> = ((props: Props) => T) | T
 type AddPropertyFunction<L, Props> = L extends object ? {
   [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K]>
 } : never
-type Tags = keyof JSX.IntrinsicElements | (() => JSX.Element)
 
 type As<Props = unknown> = {
   as?: unknown extends Props ? Tags : MaybeFunction<Tags, Props>
 }
 type AdditionalProps<Props> = {
   withProps?: boolean | ((props: Partial<Props>) => Partial<Props>)
-  
 } & As<Props>
 
 type GetPropertyTypes<P, Props> = P extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> : never
@@ -26,7 +24,7 @@ type Slot<Name extends string, List> = {
 }
 export type StyleSlots<Slots> = {
   [K in keyof Slots]: {
-    as: Slots[K] extends Record<string, any> ? Slots[K]['as'] : Tags // Переписать, случайный структурный тип
+    as: Slots[K] extends Record<string, any> ? Slots[K]['as'] extends (p: any) => any ? ReturnType<Slots[K]['as']> : Slots[K]['as'] : Tags // Переписать, случайный структурный тип
     className: string
   }
 }
@@ -67,7 +65,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
   name<N extends string>(name: N): Component<N, Props, Slots, PropertiesList> {
     this.componentName = name
 
-    return this as any
+    return this 
   }
   defaultProps(props: Props) {
     this.theme.defaultProps = props
@@ -88,6 +86,14 @@ export class Component<Name extends string = never, Props = never, Slots extends
     this.theme.slots[name] = config
     
     return this
+  }
+
+  slot2<
+    Config extends { length: number, l: string }
+  >(config: Config) {
+
+    
+    return this as any
   }
 
   objectStyleToString(tokens: DeepPartial<this['properties']['tokens']>, props: Props, rules: {}): string {
@@ -179,7 +185,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
       }
 
       result[name] = {
-        as,
+        as: typeof as === 'function' ? as(props) : as,
         className: css(this.objectStyleToString(cacheTheme, props, rules)),
       }
     }

@@ -1,6 +1,4 @@
-import { StyleProperties } from '../../StyleProperties'
-
-export interface ButtonProps extends StyleProperties {
+export interface ButtonProps {
   /** Иконка слева */
   children?: any
   /** Иконка слева */
@@ -8,7 +6,7 @@ export interface ButtonProps extends StyleProperties {
   /** Иконка справа */
   iconAfter?: React.ReactNode
   /** Размер кнопки */
-  size?: 's' | 'm' | 'l' | ('s' | 'm' | 'l')[]
+  size?: 's' | 'm' | 'l'
   /** Имя кнопки */
   name?: string
   /** Значение кнопки */

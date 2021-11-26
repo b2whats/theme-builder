@@ -1,3 +1,5 @@
+import React from "react"
+
 export const isObject = (value: any): value is object => value && value.constructor && value.constructor === Object
 export const isFunction = (value: any): value is Function => typeof value === 'function'
 export const isString = (value: any): value is string => typeof value === 'string'
@@ -179,3 +181,11 @@ export const objectHash = (obj: Record<string, any>): string => {
 
   return str
 }
+
+
+export type Tags = keyof JSX.IntrinsicElements
+// export type Tags = 'a' | 'article' | 'aside' | 'b' | 'blockquote' | 'button' | 'caption'
+//   | 'code' | 'details' | 'div' | 'fieldset' | 'figcaption' | 'footer' | 'form' | 'h1' | 'h2'
+//   | 'h3' | 'h4' | 'h5' | 'h6' | 'header' | 'i' | 'img' | 'input' | 'label' | 'legend' | 'li'
+//   | 'main' | 'nav' | 'ol' | 'option' | 'p' | 'picture' | 'section' | 'span' | 'strong' | 'table'
+//   | 'tr' | 'td' | 'tbody' | 'textarea'

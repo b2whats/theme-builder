@@ -1,8 +1,6 @@
 import { Tokens } from './Tokens'
 import { Properties } from './Properties'
 import { Component } from './Component'
-import { createHook } from './createHook'
-
 
 export const tokens = new Tokens({
   focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
@@ -250,7 +248,7 @@ export const properties = new Properties(tokens)
   })
   .add('borderRadius', {
     token: 'dimension.borderRadius',
-    toString: (value: 'circle') => `border-radius: ${value === 'circle' ? '100' : value}px;`
+    toString: (value: 'circle' | number) => `border-radius: ${value === 'circle' ? '100' : value}px;`
   })
   .add('column', {
     toString: (value: boolean) => `flex-direction: ${value ? 'column' : 'row'};`
@@ -259,6 +257,10 @@ export const properties = new Properties(tokens)
     token: 'palette', 
     toString: (value) => `color: ${value};`
   })
+  .add('bg', {
+    token: 'palette', 
+    toString: (value) => `background-color: ${value};`
+  })
   .add('colorHEX', {
     token: 'palette', 
     toString: (value: string) => `color: ${value};`
@@ -266,6 +268,10 @@ export const properties = new Properties(tokens)
   .add('shadow', {
     token: 'shadow',
     toString: (value) => `box-shadow: ${value};`
+  })
+  .add('height', {
+    token: 'dimension.rowHeight',
+    toString: (value: number) => `height: ${value}px;`
   })
   .add('focus', {
     token: 'focus',
@@ -300,8 +306,8 @@ export const component = new Component(properties)
     size: 'm',
   }))
   .slot('base', {
-    asString: '',
-    //as: 'a',
+    asStringff: '',
+    as: 'a',
     display: 'block',
     color: ['blue50', null, 'black16'],
     fontSize: (props) => props.size,
@@ -312,7 +318,7 @@ export const component = new Component(properties)
     }
   })
   .slot('base2', {
-    as: 'span',
+    as: 'button',
     display: 'flex',
     color: ['black32', 'blue900'],
     fontSize: (props) => props.size,
@@ -322,4 +328,8 @@ export const component = new Component(properties)
       fontSize: (props) => props.size,
     }
   })
-  //.execute({}, {}).base2
+  // .slot2({
+  //   fff: 1,
+  //   length: 2,
+  //   l: 'dd'
+  // })
