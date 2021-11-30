@@ -30,6 +30,12 @@ export const mergeTheme = (a: object = emptyCache, b: object = emptyCache) => {
         }
         return b
       },
+      className: (a, b) => {
+        if (isString(a) && isString(b)) {
+          return a + ' ' + b
+        }
+        return b
+      },
     }, { removeEmpty: true })
     cacheA.set(b, cacheB)
   }

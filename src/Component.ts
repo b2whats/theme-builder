@@ -1,22 +1,20 @@
 import { css } from '@emotion/css'
 import { mergeTheme } from './merge'
 import type { Properties } from './Properties'
-import type { FlattenObjectType, DeepPartial, Tags } from './utils'
+import type { DeepPartial, MaybeArray } from './utils'
 import { objectHash } from './utils'
 
-type OrFunction<Args, Return> = (props: Required<Args>) => Return
-type MaybeArray<T> = T[] | T
-type MaybeFunction<T, Props> = ((props: Props) => T) | T
+type Exactly<T, U extends T> = U & {[K in keyof U]: K extends keyof T ? T[K] : never};
+
+type OrFunction<Args, Return> = (props: Args) => Return
 type AddPropertyFunction<L, Props> = L extends object ? {
-  [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K]>
+  [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K] | undefined>
 } : never
 
-type As<Props = unknown> = {
-  as?: unknown extends Props ? Tags : MaybeFunction<Tags, Props>
-}
 type AdditionalProps<Props> = {
   withProps?: boolean | ((props: Partial<Props>) => Partial<Props>)
-} & As<Props>
+  className?: string
+}
 
 type GetPropertyTypes<P, Props> = P extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> : never
 type Slot<Name extends string, List> = {
@@ -24,7 +22,6 @@ type Slot<Name extends string, List> = {
 }
 export type StyleSlots<Slots> = {
   [K in keyof Slots]: {
-    as: Slots[K] extends Record<string, any> ? Slots[K]['as'] extends (p: any) => any ? ReturnType<Slots[K]['as']> : Slots[K]['as'] : Tags // Переписать, случайный структурный тип
     className: string
   }
 }
@@ -42,7 +39,7 @@ type ComponentThemeAsList<Name extends string, Props> = {
 
 type PartialProps<Props> = {
   [P in keyof Props]?: Props[P] | undefined
-} & As
+}
 
 export class Component<Name extends string = never, Props = never, Slots extends Record<string, any> = {}, PropertiesList extends Properties<any, any> = never> {
   componentName!: string
@@ -58,7 +55,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
     public properties: PropertiesList,
   ) {}
 
-  types<P extends object>(): Component<Name, PartialProps<P>, Slots, PropertiesList> {
+  types<P extends object>(): Component<Name, Partial<P>, Slots, PropertiesList> {
     return this as any
   }
 
@@ -82,18 +79,10 @@ export class Component<Name extends string = never, Props = never, Slots extends
   slot<
     SlotName extends string,
     Config extends GetPropertyTypes<PropertiesList, Props> & AdditionalProps<Props>
-  >(name: SlotName, config: Config & GetPropertyTypes<PropertiesList, Props> & AdditionalProps<Props>): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
+  >(name: SlotName, config: Exactly<GetPropertyTypes<PropertiesList, Props> & AdditionalProps<Props>, Config> ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
     this.theme.slots[name] = config
     
     return this
-  }
-
-  slot2<
-    Config extends { length: number, l: string }
-  >(config: Config) {
-
-    
-    return this as any
   }
 
   objectStyleToString(tokens: DeepPartial<this['properties']['tokens']>, props: Props, rules: {}): string {
@@ -179,18 +168,55 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
     const result: Record<string, object> = {}
     
-    for (let [name, { as, withProps, ...rules }] of Object.entries(componentTheme.slots)) {
+    for (let [name, { withProps, className, ...rules }] of Object.entries(componentTheme.slots)) {
       if (withProps) {
         Object.assign(rules, typeof withProps === 'function' ? withProps(props) : props)
       }
 
       result[name] = {
-        as: typeof as === 'function' ? as(props) : as,
-        className: css(this.objectStyleToString(cacheTheme, props, rules)),
+        className: (className ? className + ' ' : '') + css(this.objectStyleToString(cacheTheme, props, rules)),
       }
     }
 
     styleCache.set(propsHash, result)
     return result as any
   }
+}
+
+type SwitchMap<Props, Prop extends keyof Props, Result> = {
+  [Value in Extract<Props[Prop], string>]?: Result | ((props: Props) => Result | undefined)
+}
+
+
+type NoInfer<T> = T extends infer S ? S : never;
+interface SlotUtils {
+  if<ExternalProps extends Record<string, any>, Props extends keyof ExternalProps, Values>(
+    prop: MaybeArray<Props>,
+    value: NoInfer<Values>,
+    defaultValue?: NoInfer<Values>,
+  ): (props: ExternalProps) => Values
+  map<ExternalProps, Prop extends keyof ExternalProps, Values>(
+    prop: Prop,
+    body: SwitchMap<ExternalProps, Prop, Values>,
+    defaultValue?: NoInfer<Values>,
+  ): (props: ExternalProps) => Values
+}
+
+export const utils: SlotUtils = {
+  if: (keys, value, defaultValue) => {
+    return (props: any): any => {
+      const isValue = Array.isArray(keys)
+        ? keys.every(key => !!props[key])
+        : props[keys]
+      
+      return isValue ? value : defaultValue
+    }
+  },
+  map: (prop, options, defaultValue) => {
+    return (props: any) => {
+      const value = props[prop]
+
+      return (typeof options[value] === 'function' ? options[value](props) : options[value]) || defaultValue
+    }
+  },
 }

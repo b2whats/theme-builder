@@ -306,8 +306,7 @@ export const component = new Component(properties)
     size: 'm',
   }))
   .slot('base', {
-    asStringff: '',
-    as: 'a',
+    asString: '',
     display: 'block',
     color: ['blue50', null, 'black16'],
     fontSize: (props) => props.size,
@@ -318,7 +317,6 @@ export const component = new Component(properties)
     }
   })
   .slot('base2', {
-    as: 'button',
     display: 'flex',
     color: ['black32', 'blue900'],
     fontSize: (props) => props.size,
@@ -328,6 +326,12 @@ export const component = new Component(properties)
       fontSize: (props) => props.size,
     }
   })
+  .execute({
+    focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
+    Button: {
+      slots: {}
+    }
+  }, {})
   // .slot2({
   //   fff: 1,
   //   length: 2,

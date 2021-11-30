@@ -1,4 +1,4 @@
-import { Component } from '../../src/Component'
+import { Component, utils } from '../../src/Component'
 import { createHook } from '../../src/createHook'
 
 import { properties } from '../../src/fixtures'
@@ -14,17 +14,16 @@ const buttonTheme = new Component(properties)
   //   size: 'm',
   // }))
   .slot('base', {
-    withProps: true,
-    as: (props) => props.href ? 'a' : 'button',
+    //withProps: true,
     asString: `
       box-sizing: border-box;
     `,
-    display: 'block',
-    borderRadius: (props) => ({
+    display: utils.if('shape', 'block', 'inline'),
+    borderRadius: utils.map('shape', {
       pill: 50,
-      square: props.size,
-      circle: 'circle' as 'circle',
-    }[props.shape] || 10),
+      square: 's',
+      circle: 'circle',
+    }, 'm'),
     color: ['blue500', 'red500', 'black'],
     fontSize: (props) => props.size,
     height: (props) => props.size || 40,
@@ -33,7 +32,6 @@ const buttonTheme = new Component(properties)
     }
   })
   .slot('before', {
-    as: 'span',
     asString: `
       box-sizing: border-box;
       margin-right: 10px;

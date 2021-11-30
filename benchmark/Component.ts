@@ -90,7 +90,6 @@ const simpleComponent = new Component(properties)
     size: 'm'
   }))
   .slot('button', {
-    as: 'button',
     display: 'block',
     color: 'black',
     fontSize: 's',
@@ -130,7 +129,6 @@ const simpleComponent = new Component(properties)
     }
   })
   .slot('button2', {
-    as: 'button',
     display: 'block',
     color: 'black',
     fontSize: 's',
@@ -170,7 +168,6 @@ const simpleComponent = new Component(properties)
     }
   })
   .slot('button3', {
-    as: 'button',
     display: 'block',
     color: 'black',
     fontSize: 's',
@@ -210,7 +207,6 @@ const simpleComponent = new Component(properties)
     }
   })
   .slot('button4', {
-    as: 'button',
     display: 'block',
     color: 'black',
     fontSize: 's',
@@ -262,7 +258,6 @@ const arrayComponent = new Component(properties)
     size: 'm'
   }))
   .slot('button', {
-    as: 'button',
     display: ['block', 'flex', 'block', 'flex'],
     color: ['black', 'black12', 'black', 'black12'],
     fontSize: ['s', 's', 's', 's'],
@@ -302,7 +297,6 @@ const arrayComponent = new Component(properties)
     }
   })
   .slot('button2', {
-    as: 'button',
     display: ['block', 'flex', 'block', 'flex'],
     color: ['black', 'black12', 'black', 'black12'],
     fontSize: ['s', 's', 's', 's'],
@@ -342,7 +336,6 @@ const arrayComponent = new Component(properties)
     }
   })
   .slot('button3', {
-    as: 'button',
     display: ['block', 'flex', 'block', 'flex'],
     color: ['black', 'black12', 'black', 'black12'],
     fontSize: ['s', 's', 's', 's'],
@@ -382,7 +375,6 @@ const arrayComponent = new Component(properties)
     }
   })
   .slot('button4', {
-    as: 'button',
     display: ['block', 'flex', 'block', 'flex'],
     color: ['black', 'black12', 'black', 'black12'],
     fontSize: ['s', 's', 's', 's'],

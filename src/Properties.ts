@@ -1,16 +1,15 @@
 import { Tokens } from './Tokens'
 import type { ObjectPaths, FlattenObjectType, TupleOf, UnionToTuple, IsUnion } from './utils'
 import { get, memoize } from './utils'
-import type { DeepPartial } from './utils'
 
 type Nullable<T> = {
   [K in keyof T]?: T[K] | null 
 }
-type MaybeArray<T, N extends number> = Nullable<TupleOf<T, N>> | T
+type MaybeTupple<Types, Arity extends number> = Nullable<TupleOf<Types, Arity>> | Types
 type ComputedProperty<Name extends string, AdditionalTypes, Breakpoints extends number = never> = {
   [key in Name]: [Breakpoints] extends [never]
-    ? AdditionalTypes
-    : MaybeArray<AdditionalTypes, Breakpoints> 
+    ? AdditionalTypes | null | undefined
+    : MaybeTupple<AdditionalTypes | null | undefined, Breakpoints> 
 }
 
 type String = (string & {})
@@ -33,7 +32,7 @@ type PropertyConfig<TokensPath, AdditionalTypes = never> = {
   toString: (value: AdditionalTypes) => string
 }
 
-type PropertyValues<Values> = Values extends MaybeArray<infer Values, number> ? Values : Values
+type PropertyValues<Values> = Values extends MaybeTupple<infer Values, number> ? Values : Values
 
 
 export class Properties<DefaultTokens extends Record<string, any>, List extends Record<string, any> = {}, Breakpoints extends number = never> {
