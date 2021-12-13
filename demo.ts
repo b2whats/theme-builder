@@ -1,5 +1,5 @@
 import {compile, serialize, stringify, middleware} from 'stylis'
-import { mergeStyles } from './src/ThemeBuilder'
+import { mergeStyles } from './src2/ThemeBuilder'
 
 const styles = mergeStyles(['', {}, () => {}, '', {}, {}, () => {}])
 

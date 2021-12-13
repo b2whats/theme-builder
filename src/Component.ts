@@ -1,10 +1,10 @@
 import { css } from '@emotion/css'
 import { mergeTheme } from './merge'
 import type { Properties } from './Properties'
-import type { DeepPartial, MaybeArray } from './utils'
+import type { DeepPartial, MaybeArray, NoInfer } from './utils'
 import { objectHash } from './utils'
 
-type Exactly<T, U extends T> = U & {[K in keyof U]: K extends keyof T ? T[K] : never};
+type Exactly<T1, T2> = T2 & Record<Exclude<keyof T2, keyof T1>, `Not possible property key`>
 
 type OrFunction<Args, Return> = (props: Args) => Return
 type AddPropertyFunction<L, Props> = L extends object ? {
@@ -16,10 +16,18 @@ type AdditionalProps<Props> = {
   className?: string
 }
 
-type GetPropertyTypes<P, Props> = P extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> : never
+type ChildrenBlock<C, StyleProps> = {
+  children?: ChildrenProps<C, StyleProps>
+}
+type ChildrenProps<C, StyleProps> = {
+  component?: C
+} & ([C] extends [never] ? StyleProps : C extends (props: infer Props)=> void ? Partial<Props> : never) ;
+
+type PropertyOptions<Builder, Props, ChildrenComponent> = Builder extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> extends infer PF ? PF & AdditionalProps<Props> & ChildrenBlock<ChildrenComponent, PF> : never : never
 type Slot<Name extends string, List> = {
   [key in Name]: List
 }
+
 export type StyleSlots<Slots> = {
   [K in keyof Slots]: {
     className: string
@@ -30,17 +38,12 @@ type ComponentTheme<Props> = {
   defaultProps?: Props
   mapProps?: (props: Props) => Props
   slots: {
-    [key: string]: AdditionalProps<Props>
+    [key: string]: AdditionalProps<Props> & ChildrenBlock<never, {}>
   }
 }
 type ComponentThemeAsList<Name extends string, Props> = {
   [key in Name]?: Partial<ComponentTheme<Props>>
 }
-
-type PartialProps<Props> = {
-  [P in keyof Props]?: Props[P] | undefined
-}
-
 export class Component<Name extends string = never, Props = never, Slots extends Record<string, any> = {}, PropertiesList extends Properties<any, any> = never> {
   componentName!: string
   theme: ComponentTheme<Props> = {
@@ -75,11 +78,11 @@ export class Component<Name extends string = never, Props = never, Slots extends
     return this
   }
 
-  // FlattenObjectType на Slots создает бесконечную рекурсию
   slot<
     SlotName extends string,
-    Config extends GetPropertyTypes<PropertiesList, Props> & AdditionalProps<Props>
-  >(name: SlotName, config: Exactly<GetPropertyTypes<PropertiesList, Props> & AdditionalProps<Props>, Config> ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
+    Config extends PropertyOptions<PropertiesList, Props, ChildrenComponent>,
+    ChildrenComponent = never
+  >(name: SlotName, config: PropertyOptions<PropertiesList, Props, ChildrenComponent> ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
     this.theme.slots[name] = config
     
     return this
@@ -126,9 +129,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
     return css
   }
 
-  mergeTheme<
-    Theme extends ComponentThemeAsList<Name, Props> & DeepPartial<this['properties']['tokens']>
-  >(theme: Theme) {
+  mergeTheme(theme: Record<string, any>) {
     let themeCache = this.cache.get(theme)
 
     if (themeCache === undefined) {
@@ -140,7 +141,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
       this.cache.set(theme, themeCache)
     }
 
-    return themeCache as Theme
+    return themeCache
   }
 
   execute(theme: ComponentThemeAsList<Name, Props> & DeepPartial<this['properties']['tokens']>, props: Props): StyleSlots<Slots> {
@@ -168,13 +169,15 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
     const result: Record<string, object> = {}
     
-    for (let [name, { withProps, className, ...rules }] of Object.entries(componentTheme.slots)) {
+    for (let [name, { withProps, className, children: { component, ...componentProps } = { component: undefined }, ...rules }] of Object.entries(componentTheme.slots)) {
       if (withProps) {
         Object.assign(rules, typeof withProps === 'function' ? withProps(props) : props)
       }
 
       result[name] = {
         className: (className ? className + ' ' : '') + css(this.objectStyleToString(cacheTheme, props, rules)),
+        component,
+        componentProps,
       }
     }
 
@@ -186,9 +189,6 @@ export class Component<Name extends string = never, Props = never, Slots extends
 type SwitchMap<Props, Prop extends keyof Props, Result> = {
   [Value in Extract<Props[Prop], string>]?: Result | ((props: Props) => Result | undefined)
 }
-
-
-type NoInfer<T> = T extends infer S ? S : never;
 interface SlotUtils {
   if<ExternalProps extends Record<string, any>, Props extends keyof ExternalProps, Values>(
     prop: MaybeArray<Props>,
@@ -220,3 +220,6 @@ export const utils: SlotUtils = {
     }
   },
 }
+
+
+

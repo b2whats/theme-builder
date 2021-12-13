@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useReducer, useEffect } from 'react'
+import React, { useRef, useCallback, useReducer, useEffect, Children } from 'react'
 import { useMergeRefs } from './useMergeRefs'
 import type { Component, StyleSlots } from './Component'
 import type { Properties } from './Properties'
@@ -20,14 +20,14 @@ type BoxProps<As, Name, Element, Events> = Join<(
   slot: Name,
   events?: Events,
   children?: [Events] extends [never] ?  React.ReactNode  : ((state: StatesHandlerData) => React.ReactNode)
-}>
+} & ComponentProps>
 
 type BoxComponent<Slots> = {
   <
-  Name extends keyof StyleSlots<Slots>,
-  As extends AsType = typeof defaultElement,
-  Element = As extends keyof JSX.IntrinsicElements ? JSX.IntrinsicElements[As] : As,
-  Events extends PhaseList = never,
+    Name extends keyof StyleSlots<Slots>,
+    As extends AsType = typeof defaultElement,
+    Element = As extends keyof JSX.IntrinsicElements ? JSX.IntrinsicElements[As] : As,
+    Events extends PhaseList = never,
   >(props: BoxProps<As, Name, Element, Events>): any
 }
 declare module "react" {
@@ -45,20 +45,18 @@ export function createHook<Props, Slots, PropertiesList extends Properties<any, 
 
     slots.current = component.execute(theme as any, props)
 
-    const Box: BoxComponent<Slots> = useCallback(React.forwardRef(({ as, slot, children, ...props }, ref: React.Ref<Element>) => {
+    const Box: BoxComponent<Slots> = useCallback(React.forwardRef(({ as, slot, events, children, ...props }, ref: React.Ref<Element>) => {
+      if (!children) return null
+
       const internalRef = useRef<HTMLElement>(null)
       const slotProps = slots.current![slot]
       
-      let elementState: StatesHandlerData
-      if (props.events) {
-        elementState = useElementState(internalRef, props as object, props.events)
-      }
-      
-      const element = as || defaultElement
       return React.createElement(
-        element,
-        { ...props, ref: useMergeRefs(internalRef, ref), className: slotProps.className },
-        typeof children === 'function' && props.events ? children(elementState!) : children
+        as || defaultElement,
+        Object.assign(props, { ref: useMergeRefs(internalRef, ref), className: slotProps.className }),
+        typeof children === 'function'
+          ? events && children(useElementState(internalRef, props, events))
+          : children
       )
     }), [])
 
@@ -103,39 +101,18 @@ class StatesHandler {
   }
 
   fromProps(props: ComponentProps) {
-    if (props.disabled) {
-      this.state.phase = 'disabled'
-    } else {
-      this.state.phase = this.last
-    }
-    if (props.loading) {
-      this.state.loading = true
-    } else {
-      this.state.loading = false
-    }
+    this.state.phase = props.disabled ? 'disabled' : this.last
+    this.state.loading = props.loading ? true : false
   }
 
   handleEvent(event: MouseEvent | FocusEvent) {
     switch (event.type) {
-      case 'mouseenter':
-        this.stack.add('hover')
-        break
-      case 'mouseleave':
-        this.stack.delete('hover')
-        break
-      case 'mousedown':
-        this.stack.add('press')
-        break
-      case 'mouseup':
-        this.stack.delete('press')
-        break
-      case 'focus':
-        this.state.focus = true
-        break
-      case 'blur':
-        this.state.focus = false
-        break
-    
+      case 'mouseenter': this.stack.add('hover'); break
+      case 'mouseleave': this.stack.delete('hover'); break
+      case 'mousedown': this.stack.add('press'); break
+      case 'mouseup': this.stack.delete('press'); break
+      case 'focus': this.state.focus = true; break
+      case 'blur': this.state.focus = false; break
       default: break
     }
 
@@ -164,7 +141,6 @@ const useElementState = (ref: React.RefObject<HTMLElement>, props: ComponentProp
 
         return acc
       }, [] as string[])
-
 
     events.forEach(event => node.addEventListener(event, handler))
     

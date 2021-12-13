@@ -1,11 +1,11 @@
 import { Tokens } from './Tokens'
-import type { ObjectPaths, FlattenObjectType, TupleOf, UnionToTuple, IsUnion } from './utils'
+import type { ObjectPaths, FlattenObjectType, TupleOf, UnionToTuple, IsUnion, Paths, ValueByToken } from './utils'
 import { get, memoize } from './utils'
 
 type Nullable<T> = {
   [K in keyof T]?: T[K] | null 
 }
-type MaybeTupple<Types, Arity extends number> = Nullable<TupleOf<Types, Arity>> | Types
+export type MaybeTupple<Types, Arity extends number> = Nullable<TupleOf<Types, Arity>> | Types
 type ComputedProperty<Name extends string, AdditionalTypes, Breakpoints extends number = never> = {
   [key in Name]: [Breakpoints] extends [never]
     ? AdditionalTypes | null | undefined
@@ -25,7 +25,8 @@ type MergePrimitiveTypes<A, B> = IsUnion<A> extends true
     ? WithPrimitive<B, string> | A
     : WithPrimitive<B, number> | A
   : A | B
-type TokensValueType<T> = IsUnion<T> extends true ? T : T extends never ? never : boolean
+
+type TokensValueType<T> = [T] extends [never] ? boolean : T
 
 type PropertyConfig<TokensPath, AdditionalTypes = never> = {
   token?: TokensPath
@@ -55,9 +56,9 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
 
   add<
     Name extends string,
-    Token extends keyof TokensPathObject = never,
+    Token extends TokensPathObject = never,
     AdditionalTypes = never,
-    TokensPathObject = ObjectPaths<DefaultTokens>
+    TokensPathObject extends string = Paths<DefaultTokens>
   >(name: Name, config: PropertyConfig<Token, AdditionalTypes>)
   : Properties<
       DefaultTokens, 
@@ -66,7 +67,7 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
         ComputedProperty<
           Name, 
           MergePrimitiveTypes<
-            TokensValueType<TokensPathObject[Token]>,
+          TokensValueType<ValueByToken<TokensPathObject, Token>>,
             AdditionalTypes
           >,
           Breakpoints
@@ -78,7 +79,10 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
       if (value === null || value === undefined) return ''
 
       if (config.token) {
-        value = (typeof value === 'boolean' ? value &&  get(tokens, config.token as string) : get(tokens, `${config.token}.${value}`)) || value
+        const tokenValue = typeof value === 'boolean' ? value &&  get(tokens, config.token) : get(tokens, `${config.token}.${value}`)
+        value = tokenValue !== null || tokenValue !== undefined
+          ? tokenValue
+          : value
       }
 
       return config.toString(value)

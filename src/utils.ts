@@ -56,8 +56,9 @@ type Narrowable =
 
 export type Narrow<A> = Cast<A,
   | (A extends [] ? [] : never)
+  | (A extends (...args: any[]) => void ? A : never)
   | (A extends Narrowable ? A : never)
-  | ({ [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]> })
+  | ({ [K in keyof A]: A[K] extends (...args: any[]) => void ? A[K] : Narrow<A[K]> })
 >
 
 export type FlattenType<T > = T extends unknown ? T : never
@@ -76,7 +77,7 @@ type LeavesEntries<
   ? O[Key] extends readonly any[] | any[]
     ? LeavesEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], keyof any[]>, Prev[I]>
   : O[Key] extends Record<string, any>
-    ? LeavesEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], Exclude<keyof any[], number>>, Prev[I]>
+    ? LeavesEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, keyof O[Key], Prev[I]>
     : [`${Prefix}${Key}`, CastToPrimitive<O[Key]>]
   : never
 
@@ -102,8 +103,47 @@ export type PathsEntries<
     | PathsEntries<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, keyof O[Key], Prev[I]> :
   [`${Prefix}${Key}`, CastToPrimitive<O[Key]>] : never
 
+
+type PathsEntries1<
+  O,
+  Delimiter extends string = '.',
+  Prefix extends string = '',
+  Key extends keyof O = keyof O,
+  I extends number = 7
+> = [I] extends [never] ? never : Key extends string | number ?
+  O[Key] extends readonly any[] | any[] ?
+    | PathsEntries1<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, Exclude<keyof O[Key], keyof any[]>, Prev[I]>
+    | [`${Prefix}${Key}`, Exclude<keyof O[Key], keyof any[]>] :
+  O[Key] extends Record<string, any> ?
+    | [`${Prefix}${Key}`, ...PathsEntries1<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, keyof O[Key], Prev[I]>]
+    | PathsEntries1<O[Key], Delimiter, `${Prefix}${Key}${Delimiter}`, keyof O[Key], Prev[I]> :
+  [`${Prefix}${Key}`, CastToPrimitive<O[Key]>] : never
+
 export type ObjectPaths<O extends Record<string, any>, Entries extends [string, any] = PathsEntries<O>> = FlattenType<{ [K in Entries as K[0] ]: K[1] }>
 export type ObjectLeaves<O extends Record<string, any>, Entries extends [string, any] = LeavesEntries<O>> = { [K in Entries as K[0] ]: K[1] }
+
+
+
+
+type A = {
+  a: {
+    a1: {
+      b1: {
+
+        c1: number
+      }
+      b11: string
+    },
+    a0: {
+      b0: number
+    }
+  }
+}
+
+type YT = LeavesEntries<A>
+
+
+
 
 type UnionToIntersection<U> =   (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type UnionToFunctions<U> = U extends unknown ? (k: U) => void : never
@@ -181,3 +221,57 @@ export const objectHash = (obj: Record<string, any>): string => {
 }
 
 export type MaybeArray<Item> = Item[] | Item
+
+export type NoInfer<T> = T extends infer S ? S : never;
+
+
+
+type DotPrefix<T extends string> = T extends "" ? "" : `.${T}`
+
+export type Paths<T> = (T extends object ?
+    { [K in Exclude<keyof T, symbol>]: `${K}${DotPrefix<Paths<T[K]>>}` | K }[Exclude<keyof T, symbol>]
+    : '') extends infer D ? Extract<D, string> : never;
+
+
+
+/* testing */
+
+type NestedObjectType = {
+    a: string
+    b: number
+    aa: [1,2,3],
+    nest: {
+        c: number;
+    }
+    otherNest: {
+        c: string;
+    }
+}
+
+const aaa = literalValues({
+  focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
+  shadow: {
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+  },
+  
+})
+
+type Num = {
+  '1': 1,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 8,
+  '9': 9,
+  '0': 0,
+}
+type TryCastToNumber<T> = T extends keyof Num ? Num[T] : T
+export type ValueByToken<U extends string, T extends U> = U extends `${T}.${infer R}` ? TryCastToNumber<R> : never;
+
+

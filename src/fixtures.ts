@@ -155,6 +155,10 @@ export const tokens = new Tokens({
       s: 1,
     },
   },
+  opacity: {
+    minLevel: 0,
+    op1: 1,
+  },
   space: {
     xxxl: 40,
     xxl: 32,
@@ -195,10 +199,6 @@ export const properties = new Properties(tokens)
   .breakpoints({
     token: 'breakpoints',
     toString: (value) => `@media screen and (min-width: ${value})`
-  })
-  .add('fontSize', {
-    token: 'font.fontSize',
-    toString: (value) => `font-size: ${value}px;`
   })
   .add('grow', {
     toString: (value: boolean) => `flex-grow: ${value ? '1' : '0'};`
@@ -261,6 +261,10 @@ export const properties = new Properties(tokens)
     token: 'palette', 
     toString: (value) => `background-color: ${value};`
   })
+  .add('opacity', {
+    token: 'opacity', 
+    toString: (value) => `opacity: ${value};`
+  })
   .add('colorHEX', {
     token: 'palette', 
     toString: (value: string) => `color: ${value};`
@@ -296,6 +300,8 @@ type Props = {
   kind: 'fill' | 'outline'
 }
 
+const C = (props: Props) => ''
+
 export const component = new Component(properties)
   .name('Button')
   .types<Props>()
@@ -306,34 +312,25 @@ export const component = new Component(properties)
     size: 'm',
   }))
   .slot('base', {
-    asString: '',
-    display: 'block',
-    color: ['blue50', null, 'black16'],
-    fontSize: (props) => props.size,
+    asString: 'kkff',
+    display: (props) => 'block',
+    color: ['black', null, 'black16'],
+    fontSize: 'm',
     hover: {
       display: 'block',
       color: ['black16', 'black16'],
-      fontSize: (props) => props.size,
     }
   })
   .slot('base2', {
     display: 'flex',
     color: ['black32', 'blue900'],
-    fontSize: (props) => props.size,
     hover: {
-      display: 'flex',
+      display: 'inline',
       color: ['orange100', 'red50'],
-      fontSize: (props) => props.size,
+      fontSize: (props) => 'm',
+    },
+    children: {
+      //component: C,
+      //kind: 'fill',
     }
   })
-  .execute({
-    focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
-    Button: {
-      slots: {}
-    }
-  }, {})
-  // .slot2({
-  //   fff: 1,
-  //   length: 2,
-  //   l: 'dd'
-  // })

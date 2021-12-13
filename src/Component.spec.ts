@@ -122,7 +122,6 @@ test('Component execute array', () => {
     size: 'm'
   }))
   .slot('button', {
-    as: 'button',
     display: ['block', 'flex'],
     color: ['black', 'black12'],
     fontSize: ['s', 's'],

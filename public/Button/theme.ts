@@ -14,24 +14,27 @@ const buttonTheme = new Component(properties)
   //   size: 'm',
   // }))
   .slot('base', {
-    //withProps: true,
     asString: `
       box-sizing: border-box;
+      & > .before {
+        font-size: 20px;
+      }
     `,
     display: utils.if('shape', 'block', 'inline'),
     borderRadius: utils.map('shape', {
       pill: 50,
       square: 's',
       circle: 'circle',
-    }, 'm'),
+    }),
     color: ['blue500', 'red500', 'black'],
-    fontSize: (props) => props.size,
+    fontSize: (props) => 'xl',
     height: (props) => props.size || 40,
     hover: {
       color: 'black16',
     }
   })
   .slot('before', {
+    className: 'before',
     asString: `
       box-sizing: border-box;
       margin-right: 10px;

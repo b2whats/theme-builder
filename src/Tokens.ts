@@ -5,3 +5,4 @@ type TokensScheme = {
 export class Tokens<Scheme extends TokensScheme> {
   constructor(public scheme: Scheme) {}
 }
+
