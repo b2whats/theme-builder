@@ -681,10 +681,10 @@
   dependencies:
     mkdirp "^1.0.4"
 
-"@riim/next-tick@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@riim/next-tick/-/next-tick-1.2.4.tgz#d6278fff770deccb5c8807b223b48e93ee7bfbde"
-  integrity sha512-wj6hIYQ1DvTyfUqcRYgaqY8K8A40jqR6h4N1054nHmxAn+dbtOrSwGiJu9nv0DGo1NQ0tJmrmTl8mj5U0V9o/A==
+"@riim/next-tick@^1.2.6":
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/@riim/next-tick/-/next-tick-1.2.6.tgz#5b46bb67b18709337c00a54fa67ea51e23a0897d"
+  integrity sha512-Grcu9OhD5Ohk/x2i0DwxB37Xf7ElmdBA5dGSDTNFNyiMPsMwc+XjciH+wgWd6vIq6bEtMPmaSXUm3i9q/TEyag==
 
 "@rollup/plugin-alias@^3.0.1":
   version "3.1.1"
@@ -1433,12 +1433,12 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-cellx@^1.10.17:
-  version "1.10.17"
-  resolved "https://registry.yarnpkg.com/cellx/-/cellx-1.10.17.tgz#81f0063fbb02c407dd3736ab3228ae7fae5ff43e"
-  integrity sha512-uGJRizGANlO6OT874NeuOxNt9y9OcHzHqI22uO+v2GxB+5RQOcU7GYKUL3pEpalQl40nEClVo1/jsSRxTfV3tA==
+cellx@^1.10.26:
+  version "1.10.26"
+  resolved "https://registry.yarnpkg.com/cellx/-/cellx-1.10.26.tgz#6f9c39c2be508c69336a2ce2e311178006780053"
+  integrity sha512-3dxjarWsEcpVX2cqCccEYvAPW4+PBJyfa5sk4PoTWmxj6alsnSBO1BwRu0ClKukfoI3Hmfoi+j6WwTI90xY6QA==
   dependencies:
-    "@riim/next-tick" "^1.2.4"
+    "@riim/next-tick" "^1.2.6"
 
 chalk@^2.0.0, chalk@^2.4.2:
   version "2.4.2"

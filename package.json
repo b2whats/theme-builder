@@ -6,7 +6,7 @@
   "scripts": {
     "start": "snowpack dev",
     "prod": "snowpack build",
-    "bench": "ts-node benchmark/Component.ts",
+    "bench": "ts-node benchmark/Properties.ts",
     "test": "jest"
   },
   "author": "",
@@ -19,7 +19,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/stylis": "^4.0.0",
-    "cellx": "^1.10.17",
+    "cellx": "^1.10.26",
     "fast-json-stringify": "^2.7.12",
     "fast-safe-stringify": "^2.1.1",
     "fast-stringify": "^2.0.0",

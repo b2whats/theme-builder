@@ -1,8 +1,11 @@
+import React from 'react'
 import { Component, utils } from '../../src/Component'
 import { createHook } from '../../src/createHook'
 
 import { properties } from '../../src/fixtures'
 import type { ButtonProps } from './contract'
+
+const Icon = (props: { color: string }) => React.createElement('span', props, 'text')
 
 const buttonTheme = new Component(properties)
   .name('Button')
@@ -20,26 +23,33 @@ const buttonTheme = new Component(properties)
         font-size: 20px;
       }
     `,
-    display: utils.if('shape', 'block', 'inline'),
-    borderRadius: utils.map('shape', {
-      pill: 50,
-      square: 's',
-      circle: 'circle',
-    }),
+    // display: utils.if('shape', 'block', 'inline'),
+    // // borderRadius: utils.map('shape', {
+    //   pill: 50,
+    //   square: 's',
+    //   circle: 'circle',
+    // }),
     color: ['blue500', 'red500', 'black'],
-    fontSize: (props) => 'xl',
-    height: (props) => props.size || 40,
+    // fontSize: (props) => 'xl',
+    // // height: (props) => props.size || 40,
     hover: {
       color: 'black16',
     }
   })
-  .slot('before', {
-    className: 'before',
-    asString: `
-      box-sizing: border-box;
-      margin-right: 10px;
-    `,
+  .slot('showPassword', {
+    fontSize: (props) => 'xl',
+    children: {
+      component: Icon,
+      color: ({ variant }) => variant === 'primary' ? 'black16' : 'black32'
+    }
   })
+
+  // type Children = {
+  //   children: {
+  //     component: (props: object) => void
+  //   }
+  // }
+
 
 export const useStyle = createHook(buttonTheme)
 

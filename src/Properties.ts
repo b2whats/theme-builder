@@ -6,7 +6,7 @@ type Nullable<T> = {
   [K in keyof T]?: T[K] | null 
 }
 export type MaybeTupple<Types, Arity extends number> = Nullable<TupleOf<Types, Arity>> | Types
-type ComputedProperty<Name extends string, AdditionalTypes, Breakpoints extends number = never> = {
+type Property<Name extends string, AdditionalTypes, Breakpoints extends number = never> = {
   [key in Name]: [Breakpoints] extends [never]
     ? AdditionalTypes | null | undefined
     : MaybeTupple<AdditionalTypes | null | undefined, Breakpoints> 
@@ -26,7 +26,7 @@ type MergePrimitiveTypes<A, B> = IsUnion<A> extends true
     : WithPrimitive<B, number> | A
   : A | B
 
-type TokensValueType<T> = [T] extends [never] ? boolean : T
+type TokensValueType<U, T> = [U] extends [never] ? T extends string ? boolean : never : U
 
 type PropertyConfig<TokensPath, AdditionalTypes = never> = {
   token?: TokensPath
@@ -34,7 +34,6 @@ type PropertyConfig<TokensPath, AdditionalTypes = never> = {
 }
 
 type PropertyValues<Values> = Values extends MaybeTupple<infer Values, number> ? Values : Values
-
 
 export class Properties<DefaultTokens extends Record<string, any>, List extends Record<string, any> = {}, Breakpoints extends number = never> {
   tokens: DefaultTokens
@@ -45,8 +44,8 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
   }
   private cache: Map<object, Record<string, Map<any, string>>> = new Map()
   
-  constructor(tokens: Tokens<DefaultTokens>) {
-    this.tokens = tokens.scheme
+  constructor({ scheme }: Tokens<DefaultTokens>) {
+    this.tokens = scheme
     this.breakpointsRules = memoize(this.breakpointsRules.bind(this))
   }
 
@@ -58,20 +57,18 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
     Name extends string,
     Token extends TokensPathObject = never,
     AdditionalTypes = never,
-    TokensPathObject extends string = Paths<DefaultTokens>
+    TokensPathObject extends string = Paths<DefaultTokens>,
   >(name: Name, config: PropertyConfig<Token, AdditionalTypes>)
   : Properties<
       DefaultTokens, 
-      FlattenObjectType<
-        List &
-        ComputedProperty<
-          Name, 
-          MergePrimitiveTypes<
-          TokensValueType<ValueByToken<TokensPathObject, Token>>,
-            AdditionalTypes
-          >,
-          Breakpoints
-        >
+      List &
+      Property<
+        Name, 
+        MergePrimitiveTypes<
+          TokensValueType<ValueByToken<TokensPathObject, Token>, Token>,
+          AdditionalTypes
+        >,
+        Breakpoints
       >,
       Breakpoints
   > {
@@ -108,6 +105,7 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
   breakpointsRules(tokens: this['tokens']): string[] {
     const result: string[] = []
     const breakpoints = get(tokens, this.breakpointsRule.token)
+    
     if (Array.isArray(breakpoints)) {
       for (let index = 1; index < breakpoints.length; index++) {
         result.push(this.breakpointsRule.toString(breakpoints[index]))
@@ -117,11 +115,11 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
     return result
   }
 
-  states<
-    State extends string
-  >(data: Record<State, (rules: string) => string>): Properties<
+  complexSelectors<
+    Selectors extends string
+  >(data: Record<Selectors, (rules: string) => string>): Properties<
     DefaultTokens, 
-    List & { [K in keyof typeof data]: Partial<List> },
+    List & { [K in Selectors]: Partial<List> & { [K in Selectors]: Partial<List> } },
     Breakpoints
   > {
     this.rules = {
@@ -141,7 +139,7 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
   compute<
     Name extends keyof List
   >(name: Name, value?: PropertyValues<List[Name]> | null, tokens: this['tokens'] = this.tokens): string {
-    if (!this.rules[name] || value === null || value === undefined) return ''
+    if (value === null || value === undefined) return ''
     
     let cache = this.cache.get(tokens)
 
@@ -170,3 +168,15 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
     return this as any
   }
 }
+
+type ReqursiveObject<T, Length extends number, Acc extends number[] = []> = number extends number ? {
+  [K in keyof T]: T[K] & (Acc['length'] extends Length ? unknown : ReqursiveObject<T, Length, [...Acc, 1]> )
+} : never
+
+type O = {
+  a: { a1: number}
+  b: { b1: number}
+  c: { c1: number}
+}
+
+type R = ReqursiveObject<O, 1>

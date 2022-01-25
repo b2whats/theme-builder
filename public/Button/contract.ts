@@ -1,10 +1,11 @@
+type Phase = 'normal' | 'hover' | 'press' | 'focus'
 export interface ButtonProps {
   /** Иконка слева */
   children?: any
   /** Иконка слева */
-  iconBefore?: React.ReactNode
+  iconBefore?: React.ReactChild | ((phase: Phase) => React.ReactChild)
   /** Иконка справа */
-  iconAfter?: React.ReactNode
+  iconAfter?: React.ReactChild
   /** Размер кнопки */
   size?: 's' | 'm' | 'l'
   /** Имя кнопки */
@@ -21,6 +22,7 @@ export interface ButtonProps {
   loading?: boolean
   /** Квадратная круглая и вытянутая форма с закругленными углами */
   shape?: 'pill' | 'square' | 'circle'
-  /** Ссылка для перехода */
+  /** Ссылка для перехода */  
   href?: string
+  variant?: 'primary' | 'secondary'
 }

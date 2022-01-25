@@ -61,11 +61,13 @@ export type Narrow<A> = Cast<A,
   | ({ [K in keyof A]: A[K] extends (...args: any[]) => void ? A[K] : Narrow<A[K]> })
 >
 
-export type FlattenType<T > = T extends unknown ? T : never
+type A = {a: number} & { b: string}
+type R = FlattenObjectType<A>
+export type FlattenType<T> = T extends unknown ? T : never
 
-export type FlattenObjectType<O extends object> = FlattenType<{
-  [K in keyof O]: O[K]
-}>
+export type FlattenObjectType<T> = {
+  [P in keyof T]: T[P]
+} & unknown
 
 type LeavesEntries<
   O,
@@ -122,29 +124,6 @@ type PathsEntries1<
 export type ObjectPaths<O extends Record<string, any>, Entries extends [string, any] = PathsEntries<O>> = FlattenType<{ [K in Entries as K[0] ]: K[1] }>
 export type ObjectLeaves<O extends Record<string, any>, Entries extends [string, any] = LeavesEntries<O>> = { [K in Entries as K[0] ]: K[1] }
 
-
-
-
-type A = {
-  a: {
-    a1: {
-      b1: {
-
-        c1: number
-      }
-      b11: string
-    },
-    a0: {
-      b0: number
-    }
-  }
-}
-
-type YT = LeavesEntries<A>
-
-
-
-
 type UnionToIntersection<U> =   (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type UnionToFunctions<U> = U extends unknown ? (k: U) => void : never
 export type IsUnion<T> = boolean extends T ? false :
@@ -194,7 +173,6 @@ export const memoize = <Arg extends any, Return>(func: UnaryFn<Arg, Return>): Un
   }
 }
 
-
 export const objectHash = (obj: Record<string, any>): string => {
   let str = ''
   
@@ -233,31 +211,8 @@ export type Paths<T> = (T extends object ?
     : '') extends infer D ? Extract<D, string> : never;
 
 
-
-/* testing */
-
-type NestedObjectType = {
-    a: string
-    b: number
-    aa: [1,2,3],
-    nest: {
-        c: number;
-    }
-    otherNest: {
-        c: string;
-    }
-}
-
-const aaa = literalValues({
-  focus: 'white 0px 0px 0px 1px, 0px 0px 2px 3px black',
-  shadow: {
-    1: '1',
-    2: '2',
-    3: '3',
-    4: '4',
-  },
-  
-})
+export type ComponentType<T = any, R = null | undefined> = (props: T) => R
+export type FunctionPartialAttr<T> = T extends ComponentType<infer P, infer R> ? (props: Partial<P>) => R : unknown
 
 type Num = {
   '1': 1,
@@ -272,6 +227,19 @@ type Num = {
   '0': 0,
 }
 type TryCastToNumber<T> = T extends keyof Num ? Num[T] : T
-export type ValueByToken<U extends string, T extends U> = U extends `${T}.${infer R}` ? TryCastToNumber<R> : never;
+export type ValueByToken<U extends string, T extends U> = U extends `${T}.${infer R}` ? TryCastToNumber<R> : never
 
+export function debounce(func: (...args: any[]) => void, timeout = 300){
+  let timer: NodeJS.Timeout
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), timeout);
+  };
+}
 
+export function isEmptyObject(obj: object) {
+  for (let _ in obj) {
+    return false;
+  }
+  return true;
+}

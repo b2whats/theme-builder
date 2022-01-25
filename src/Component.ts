@@ -1,10 +1,8 @@
 import { css } from '@emotion/css'
 import { mergeTheme } from './merge'
 import type { Properties } from './Properties'
-import type { DeepPartial, MaybeArray, NoInfer } from './utils'
-import { objectHash } from './utils'
-
-type Exactly<T1, T2> = T2 & Record<Exclude<keyof T2, keyof T1>, `Not possible property key`>
+import type { DeepPartial, MaybeArray, NoInfer, ComponentType } from './utils'
+import { objectHash, isEmptyObject } from './utils'
 
 type OrFunction<Args, Return> = (props: Args) => Return
 type AddPropertyFunction<L, Props> = L extends object ? {
@@ -14,37 +12,56 @@ type AddPropertyFunction<L, Props> = L extends object ? {
 type AdditionalProps<Props> = {
   withProps?: boolean | ((props: Partial<Props>) => Partial<Props>)
   className?: string
+  asString?: string
+}
+type Nullable = null | undefined 
+type ChildrenBlock<C extends (...args: any) => any, StyleProps, Props> = {
+  children?: {
+    component: C //| ((props: Props, _: never) => ComponentType) | (ComponentType) 
+    c?: C extends ((props: Props, _: never) => ComponentType<infer P>) ? AddPropertyFunction<P, Props> : unknown
+  }
+  // & (C extends ComponentType<infer P> ? AddPropertyFunction<P, Props> : unknown)
+  // & (C extends ((props: Props, _: never) => ComponentType<infer P>) ? AddPropertyFunction<P, Props> : unknown)
+  // & (C extends ((props: Props, _: never) => infer R) ? R extends ComponentType<infer P> ? AddPropertyFunction<P, Props> : unknown: unknown)
 }
 
-type ChildrenBlock<C, StyleProps> = {
-  children?: ChildrenProps<C, StyleProps>
-}
-type ChildrenProps<C, StyleProps> = {
-  component?: C
-} & ([C] extends [never] ? StyleProps : C extends (props: infer Props)=> void ? Partial<Props> : never) ;
+type Flatten<T> = T extends unknown ? T : never
 
-type PropertyOptions<Builder, Props, ChildrenComponent> = Builder extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> extends infer PF ? PF & AdditionalProps<Props> & ChildrenBlock<ChildrenComponent, PF> : never : never
+type PropertyOptions<Builder, Props, ChildrenComponent> = Builder extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> extends infer PF ? PF & AdditionalProps<Props> & ChildrenBlock<ChildrenComponent, PF, Props> : never : never
 type Slot<Name extends string, List> = {
   [key in Name]: List
 }
 
 export type StyleSlots<Slots> = {
   [K in keyof Slots]: {
-    className: string
+    className: string,
+    children: Slots[K] extends { children: { component: infer C, [key: string]: any } } ? C : undefined
+    childrenProps:  Slots[K] extends { children: infer C } ? Flatten<Pick<C, Exclude<keyof C, 'component'>>> : undefined,
   }
+}
+
+type NonArrayObject = {
+  [x: string]: any
+  [y: number]: never
+}
+
+type Validate<T, U> = U & {
+  [K in keyof T]: K extends Extract<keyof T, keyof U>
+    ? (T[K] extends NonArrayObject ? Validate<T[K], NonNullable<U[K]>> :  T[K])
+    : `Not possible property key - ${K & string}`
 }
 
 type ComponentTheme<Props> = {
   defaultProps?: Props
   mapProps?: (props: Props) => Props
   slots: {
-    [key: string]: AdditionalProps<Props> & ChildrenBlock<never, {}>
+    [key: string]: AdditionalProps<Props> & ChildrenBlock<unknown, {}, any>
   }
 }
 type ComponentThemeAsList<Name extends string, Props> = {
   [key in Name]?: Partial<ComponentTheme<Props>>
 }
-export class Component<Name extends string = never, Props = never, Slots extends Record<string, any> = {}, PropertiesList extends Properties<any, any> = never> {
+export class Component<Name extends string = never, Props = never, Slots extends Record<string, any> = {}, PropertiesList extends Properties<any, any> = never, PR = {}> {
   componentName!: string
   theme: ComponentTheme<Props> = {
     defaultProps: undefined,
@@ -78,11 +95,16 @@ export class Component<Name extends string = never, Props = never, Slots extends
     return this
   }
 
+  
   slot<
     SlotName extends string,
-    Config extends PropertyOptions<PropertiesList, Props, ChildrenComponent>,
-    ChildrenComponent = never
-  >(name: SlotName, config: PropertyOptions<PropertiesList, Props, ChildrenComponent> ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
+    ChildrenComponent,
+    Config,
+    StyledProps = PropertiesList extends Properties<any, infer L, any> ? L : unknown,
+  >(
+    name: SlotName,
+    config: PropertyOptions<StyledProps, Props, ChildrenComponent> //| Validate<Config, PropertyOptions<PropertiesList, Props, ChildrenComponent>>
+  ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
     this.theme.slots[name] = config
     
     return this
@@ -90,11 +112,17 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
   objectStyleToString(tokens: DeepPartial<this['properties']['tokens']>, props: Props, rules: {}): string {
     let css = ''
-
     const responsive: string[] = []
+
+    if (rules['asString']) {
+      css += rules['asString']
+    }
+
     for (const rule in rules) {
       let value = rules[rule]
       const type = typeof value
+
+      if (!this.properties.rules[rule]) continue
 
       if (type === 'function') {
         value = value(props)
@@ -157,6 +185,8 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
     if (propsCache) return propsCache as StyleSlots<Slots>
 
+    console.log('execute')
+
     const cacheTheme = this.mergeTheme(theme) as DeepPartial<this['properties']['tokens']>
     const componentTheme = cacheTheme[this.componentName] as this['theme'] 
 
@@ -167,22 +197,22 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
     if (componentTheme.mapProps) Object.assign(props, componentTheme.mapProps(props))
 
-    const result: Record<string, object> = {}
+    const result  = {} as StyleSlots<Slots>
     
-    for (let [name, { withProps, className, children: { component, ...componentProps } = { component: undefined }, ...rules }] of Object.entries(componentTheme.slots)) {
+    for (let [name, { withProps, className, children: { component, ...childrenProps } = { component: undefined }, ...rules }] of Object.entries(componentTheme.slots)) {
       if (withProps) {
         Object.assign(rules, typeof withProps === 'function' ? withProps(props) : props)
       }
 
-      result[name] = {
+      result[name as keyof Slots] = {
         className: (className ? className + ' ' : '') + css(this.objectStyleToString(cacheTheme, props, rules)),
-        component,
-        componentProps,
-      }
+        children: component,
+        childrenProps: isEmptyObject(childrenProps) ? undefined : childrenProps,
+      } as any
     }
 
     styleCache.set(propsHash, result)
-    return result as any
+    return result
   }
 }
 
@@ -204,7 +234,7 @@ interface SlotUtils {
 
 export const utils: SlotUtils = {
   if: (keys, value, defaultValue) => {
-    return (props: any): any => {
+    return function utils(props: any): any {
       const isValue = Array.isArray(keys)
         ? keys.every(key => !!props[key])
         : props[keys]
@@ -213,13 +243,10 @@ export const utils: SlotUtils = {
     }
   },
   map: (prop, options, defaultValue) => {
-    return (props: any) => {
+    return function utils(props: any) {
       const value = props[prop]
 
       return (typeof options[value] === 'function' ? options[value](props) : options[value]) || defaultValue
     }
   },
 }
-
-
-

@@ -2,7 +2,7 @@
 import Benchmark from 'benchmark'
 import { ThemeBuilder, utils, ComponentTheme, Slot } from '../src2/ThemeBuilder'
 import type { StyleProperties } from '../src2/StyleProperties'
-import { tokens } from '../src2/public/tokens'
+import { tokens } from '../src2/tokens'
 import { mergeObject, weakMemoize, memoize } from '../src2/merge'
 
 interface ButtonProps extends StyleProperties {
