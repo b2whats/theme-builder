@@ -1,32 +1,43 @@
 import Benchmark from 'benchmark'
 import { properties, tokens } from '../src/fixtures'
 
+const Circular = <T extends string | null | boolean | number>(arr: T[]) => {
+  let i = 0
+  const n = arr.length
 
-var suite = new Benchmark.Suite;
+  return () => arr[i++ % n]
+}
 
-suite.add('without token(No cache)', function() {
-  properties.rules['display']('block', tokens.scheme)
-})
-suite.add('nested token(No cache)', function() {
-  properties.rules['fontSize']('s', tokens.scheme)
-})
-suite.add('boolean token(No cache)', function() {
-  properties.rules['focus'](true, tokens.scheme)
-})
+const display = Circular(['block', 'flex', 'inline', null])
+const fontSize = Circular(["xxxxxl", "xxxxl", "xxxl", "xxl", "xl", "l", "m", "s", "xs", null])
+const focus = Circular([true, false, null])
+const shadow = Circular([1, 2, 3, 4, null])
+
+var suite = new Benchmark.Suite();
+
+// suite.add('without token(No cache)', function() {
+//   properties.rules['display'](display(), tokens.scheme)
+// })
+// suite.add('nested token(No cache)', function() {
+//   properties.rules['fontSize'](fontSize(), tokens.scheme)
+// })
+// suite.add('boolean token(No cache)', function() {
+//   properties.rules['focus'](focus(), tokens.scheme)
+// })
 
 suite.add('nested token(cache)', function() {
-  properties.compute('fontSize', 's', tokens.scheme)
+  properties.compute('fontSize', fontSize(), tokens.scheme)
 })
 suite.add('without token(cache)', function() {
-  properties.compute('display', 'block', tokens.scheme)
+  properties.compute('display', display(), tokens.scheme)
 })
 
 suite.add('boolean token(cache)', function() {
-  properties.compute('focus', true, tokens.scheme)
+  properties.compute('focus', focus(), tokens.scheme)
 })
 
 suite.add('number token(cache)', function() {
-  properties.compute('shadow', 1, tokens.scheme)
+  properties.compute('shadow', shadow(), tokens.scheme)
 })
 
 // const na: ['s', 'm', 'l'] = ['s', 'm', 'l']
@@ -51,7 +62,9 @@ suite.add('number token(cache)', function() {
 suite.on('cycle', function(event: any) {
   console.log(String(event.target));
 })
-.run({ 'async': true });
+.run({
+  async: true,
+});
 
 
 /*

@@ -1,5 +1,5 @@
 import { Tokens } from './Tokens'
-import type { ObjectPaths, FlattenObjectType, TupleOf, UnionToTuple, IsUnion, Paths, ValueByToken } from './utils'
+import type { ObjectPaths, IsPrimitive, TupleOf, UnionToTuple, IsUnion, Paths, PathValue } from './utils'
 import { get, memoize } from './utils'
 
 type Nullable<T> = {
@@ -26,38 +26,37 @@ type MergePrimitiveTypes<A, B> = IsUnion<A> extends true
     : WithPrimitive<B, number> | A
   : A | B
 
-type TokensValueType<U, T> = [U] extends [never] ? T extends string ? boolean : never : U
+type MergeTokenValueWithAdditional<TokenValue, Additional= never> = {
+  t: 1,
+  f: 2,
+}[TokenValue extends string | number ? 't' : 'f']
+type OTOT = MergeTokenValueWithAdditional<'a' >
+type TokenType<T> = IsPrimitive<T> extends true ? boolean : T
 
-type PropertyConfig<TokensPath, AdditionalTypes = never> = {
+type PropertyConfig<TokensPath, AdditionalTypes> = {
   token?: TokensPath
   toString: (value: AdditionalTypes) => string
 }
 
-type PropertyValues<Values> = Values extends MaybeTupple<infer Values, number> ? Values : Values
-
-export class Properties<DefaultTokens extends Record<string, any>, List extends Record<string, any> = {}, Breakpoints extends number = never> {
+type PropertyValues<Values> = Values extends MaybeTupple<infer Value, number> ? Value : Values
+export class Properties<
+  DefaultTokens extends Tokens['scheme'],
+  List extends Record<string, any> = {},
+  Breakpoints extends number = never
+> {
   tokens: DefaultTokens
-  rules: { [K in keyof List]: (value: List[K], tokens?: this['tokens']) => string } = {} as any
-  private breakpointsRule!: {
-    token: string
-    toString: (value: string | number) => string
-  }
+  rules: { [K in keyof List]: (value: PropertyValues<List[K]>, tokens?: DefaultTokens) => string } = {} as any
+  breakpointsRule: (tokens: DefaultTokens) => string[] = () => []
   private cache: Map<object, Record<string, Map<any, string>>> = new Map()
   
   constructor({ scheme }: Tokens<DefaultTokens>) {
     this.tokens = scheme
-    this.breakpointsRules = memoize(this.breakpointsRules.bind(this))
-  }
-
-  private hashValue<T>(value: T): T | string  {
-    return Array.isArray(value) ? value.join('|') : value
   }
 
   add<
     Name extends string,
-    Token extends TokensPathObject = never,
+    Token extends Paths<DefaultTokens> = never,
     AdditionalTypes = never,
-    TokensPathObject extends string = Paths<DefaultTokens>,
   >(name: Name, config: PropertyConfig<Token, AdditionalTypes>)
   : Properties<
       DefaultTokens, 
@@ -65,7 +64,7 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
       Property<
         Name, 
         MergePrimitiveTypes<
-          TokensValueType<ValueByToken<TokensPathObject, Token>, Token>,
+          TokenType<PathValue<DefaultTokens, Token>>,
           AdditionalTypes
         >,
         Breakpoints
@@ -76,7 +75,10 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
       if (value === null || value === undefined) return ''
 
       if (config.token) {
-        const tokenValue = typeof value === 'boolean' ? value &&  get(tokens, config.token) : get(tokens, `${config.token}.${value}`)
+        const tokenValue = value === true
+          ? get(tokens, config.token)
+          : get(tokens, `${config.token}.${value}`)
+
         value = tokenValue !== null || tokenValue !== undefined
           ? tokenValue
           : value
@@ -85,80 +87,70 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
       return config.toString(value)
     }
 
-    return this as any
+    return this
   }
   
   breakpoints<
-    Token extends keyof TokensPathObject = never,
-    TokensPathObject = ObjectPaths<DefaultTokens>
-  >(config: PropertyConfig<Token, string | number>)
-  : Properties<
-      DefaultTokens, 
-      List,
-      UnionToTuple<TokensPathObject[Token]>['length']
+    Token extends Paths<DefaultTokens>,
+  >(config: Required<PropertyConfig<Token, string>>): Properties<
+    DefaultTokens, 
+    List,
+    UnionToTuple<PathValue<DefaultTokens, Token>>['length']
   > {
-    this.breakpointsRule = config as any
+    this.breakpointsRule = memoize((tokens: any) => {
+      const breakpoints = get(tokens, config.token)
+  
+      return Array.isArray(breakpoints)
+        ? breakpoints.map(config.toString)
+        : []
+    })
 
     return this
   }
 
-  breakpointsRules(tokens: this['tokens']): string[] {
-    const result: string[] = []
-    const breakpoints = get(tokens, this.breakpointsRule.token)
-    
-    if (Array.isArray(breakpoints)) {
-      for (let index = 1; index < breakpoints.length; index++) {
-        result.push(this.breakpointsRule.toString(breakpoints[index]))
-      }
-    }
-
-    return result
-  }
-
-  complexSelectors<
+  pseudoSelectors<
     Selectors extends string
-  >(data: Record<Selectors, (rules: string) => string>): Properties<
+  >(rules: Record<Selectors, (rules: string) => string>): Properties<
     DefaultTokens, 
     List & { [K in Selectors]: Partial<List> & { [K in Selectors]: Partial<List> } },
     Breakpoints
   > {
     this.rules = {
       ...this.rules,
-      ...data,
+      ...rules,
     }
 
-    return this as any
+    return this
   }
 
   hasCache<
-    Name extends keyof List
+    Name extends keyof List & string
   >(name: Name, value: PropertyValues<List[Name]>, tokens: DefaultTokens): boolean {
-    return (this.cache.get(tokens) || {})[name as string].get(this.hashValue(value)) !== undefined
+    return (this.cache.get(tokens) || {})[name].get(value) !== undefined
   }
   
   compute<
-    Name extends keyof List
-  >(name: Name, value?: PropertyValues<List[Name]> | null, tokens: this['tokens'] = this.tokens): string {
-    if (value === null || value === undefined) return ''
-    
+    Name extends keyof List & string
+  >(name: Name, value: PropertyValues<List[Name]>, tokens: DefaultTokens = this.tokens): string {
+    if (this.rules[name] === undefined) return ''
+
     let cache = this.cache.get(tokens)
 
     if (cache === undefined) {
-      cache = Object.keys(this.rules).reduce((acc, rule) => {
-        acc[rule] = new Map()
+      cache = {}
 
-        return acc
-      }, {})
+      for (const rule in this.rules) {
+        cache[rule] = new Map()
+      }
 
       this.cache.set(tokens, cache)
     }
 
-    let result = cache[name as string].get(value)
+    let result = cache[name].get(value)
 
     if (result === undefined) {
       result = this.rules[name](value, tokens)
-
-      cache[name as string].set(value, result)
+      cache[name].set(value, result)
     }
 
     return result
@@ -168,15 +160,3 @@ export class Properties<DefaultTokens extends Record<string, any>, List extends 
     return this as any
   }
 }
-
-type ReqursiveObject<T, Length extends number, Acc extends number[] = []> = number extends number ? {
-  [K in keyof T]: T[K] & (Acc['length'] extends Length ? unknown : ReqursiveObject<T, Length, [...Acc, 1]> )
-} : never
-
-type O = {
-  a: { a1: number}
-  b: { b1: number}
-  c: { c1: number}
-}
-
-type R = ReqursiveObject<O, 1>

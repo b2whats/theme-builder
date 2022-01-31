@@ -1,6 +1,9 @@
+/* eslint-disabled */
+
 import { Tokens } from './Tokens'
 import { Properties } from './Properties'
-import { Component } from './Component'
+import { ObjectPaths } from './utils'
+// import { Component } from './Component'
 import React from 'react'
 
 export const tokens = new Tokens({
@@ -192,166 +195,167 @@ export const tokens = new Tokens({
   breakpoints: ['40em', '52em', '64em', '80em']
 })
 
+type RE = ObjectPaths<typeof tokens['scheme']>
+
 
 export const properties = new Properties(tokens)
   .breakpoints({
     token: 'breakpoints',
     toString: (value) => `@media screen and (min-width: ${value})`
   })
-  // .add('grow', {
-  //   toString: (value: boolean) => `flex-grow: ${value ? '1' : '0'};`
-  // })
+  .add('grow', {
+    toString: (value: boolean) => `flex-grow: ${value ? '1' : '0'};`
+  })
   .add('display', {
     toString: (value: 'block' | 'flex' | 'inline') => `display: ${value};`
   })
-  // .add('fontFamily', {
-  //   toString: (value: string) => `font-family: ${value};`
-  // })
+  .add('fontFamily', {
+    toString: (value: string) => `font-family: ${value};`
+  })
   .add('fontSize', {
     token: 'font.fontSize',
     toString: (value) => `font-size: ${value}px;`
   })
-  // .add('lineHeight', {
-  //   token: 'font.lineHeight',
-  //   toString: (value) => `line-height: ${value};`
-  // })
-  // .add('italic', {
-  //   toString: (value: boolean) => `font-style: ${value ? 'italic' : 'normal'};`
-  // })
-  // .add('noWrap', {
-  //   toString: (value: boolean) => `white-space: ${value ? 'nowrap' : 'normal'};`
-  // })
-  // .add('pre', {
-  //   toString: (value: boolean) => `white-space: ${value ? 'pre-wrap' : 'normal'};`
-  // })
-  // .add('uppercase', {
-  //   toString: (value: boolean) => `text-transform: ${value ? 'uppercase' : 'none'};`
-  // })
-  // .add('cursor', {
-  //   toString: (value: string) => `cursor: ${value};`
-  // })
-  // .add('smoothing', {
-  //   toString: (value: 'auto' | 'antialiased' | 'subpixel') => {
-  //     const webkitSmoothing = { auto: 'auto', antialiased: 'antialiased', subpixel: 'subpixel-antialiased' }
-  //     const mozSmoothing = { auto: 'auto', antialiased: 'grayscale', subpixel: 'grayscale' }
+  .add('lineHeight', {
+    token: 'font.lineHeight',
+    toString: (value) => `line-height: ${value};`
+  })
+  .add('italic', {
+    toString: (value: boolean) => `font-style: ${value ? 'italic' : 'normal'};`
+  })
+  .add('noWrap', {
+    toString: (value: boolean) => `white-space: ${value ? 'nowrap' : 'normal'};`
+  })
+  .add('pre', {
+    toString: (value: boolean) => `white-space: ${value ? 'pre-wrap' : 'normal'};`
+  })
+  .add('uppercase', {
+    toString: (value: boolean) => `text-transform: ${value ? 'uppercase' : 'none'};`
+  })
+  .add('cursor', {
+    toString: (value: string) => `cursor: ${value};`
+  })
+  .add('smoothing', {
+    toString: (value: 'auto' | 'antialiased' | 'subpixel') => {
+      const webkitSmoothing = { auto: 'auto', antialiased: 'antialiased', subpixel: 'subpixel-antialiased' }
+      const mozSmoothing = { auto: 'auto', antialiased: 'grayscale', subpixel: 'grayscale' }
 
-  //     return `
-  //       -webkit-font-smoothing: ${webkitSmoothing[value]};
-  //       -moz-osx-font-smoothing: ${mozSmoothing[value]};
-  //     `
-  //   }
-  // })
-  // .add('shrink', {
-  //   toString: (value) => `flex-shrink: ${value ? '1' : '0'};`
-  // })
-  // .add('borderRadius', {
-  //   token: 'dimension.borderRadius',
-  //   toString: (value: 'circle' | number) => `border-radius: ${value === 'circle' ? '100' : value}px;`
-  // })
-  // .add('column', {
-  //   toString: (value: boolean) => `flex-direction: ${value ? 'column' : 'row'};`
-  // })
+      return `
+        -webkit-font-smoothing: ${webkitSmoothing[value]};
+        -moz-osx-font-smoothing: ${mozSmoothing[value]};
+      `
+    }
+  })
+  .add('shrink', {
+    toString: (value) => `flex-shrink: ${value ? '1' : '0'};`
+  })
+  .add('borderRadius', {
+    token: 'dimension.borderRadius',
+    toString: (value: 'circle' | number) => `border-radius: ${value === 'circle' ? '100' : value}px;`
+  })
+  .add('column', {
+    toString: (value: boolean) => `flex-direction: ${value ? 'column' : 'row'};`
+  })
   .add('color', {
     token: 'palette', 
     toString: (value) => `color: ${value};`
   })
-  // .add('bg', {
-  //   token: 'palette', 
-  //   toString: (value) => `background-color: ${value};`
-  // })
-  // .add('opacity', {
-  //   token: 'opacity', 
-  //   toString: (value) => `opacity: ${value};`
-  // })
-  // .add('colorHEX', {
-  //   token: 'palette', 
-  //   toString: (value: string) => `color: ${value};`
-  // })
-  // .add('shadow', {
-  //   token: 'shadow',
-  //   toString: (value) => `box-shadow: ${value};`
-  // })
-  // .add('height', {
-  //   token: 'dimension.rowHeight',
-  //   toString: (value: number) => `height: ${value}px;`
-  // })
-  // .add('focus', {
-  //   token: 'focus',
-  //   toString: (value) =>  value ? `
-  //     &&:focus{
-  //       box-shadow: ${value};
-  //       position: relative;
-  //       z-index: 2;
-  //     }
-  //   ` : ''
-  // })
-  .complexSelectors({
+  .add('bg', {
+    token: 'palette', 
+    toString: (value) => `background-color: ${value};`
+  })
+  .add('opacity', {
+    token: 'opacity', 
+    toString: (value) => `opacity: ${value};`
+  })
+  .add('colorHEX', {
+    token: 'palette', 
+    toString: (value: string) => `color: ${value};`
+  })
+  .add('shadow', {
+    token: 'shadow',
+    toString: (value) => `box-shadow: ${value};`
+  })
+  .add('height', {
+    token: 'dimension.rowHeight',
+    toString: (value: number) => `height: ${value}px;`
+  })
+  .add('focus', {
+    token: 'focus',
+    toString: (value) =>  value ? `
+      &&:focus{
+        box-shadow: ${value};
+        position: relative;
+        z-index: 2;
+      }
+    ` : ''
+  })
+  .pseudoSelectors({
     hover: (rules) => `&&:hover{${rules}}`,
     active: (rules) => `&&&:active{${rules}}`,
     disabled: (rules) => `&&&&:disabled{${rules}}`,
   })
 
-const a = properties.list()['display']
+const a = properties.list()['shadow']
+// properties.compute('fontSize', 's', tokens.scheme)
+// type Props = {
+//   /** Размер */
+//   size: 's' | 'm' | 'l'
+//   kind: 'fill' | 'outline'
+// }
 
-type Props = {
-  /** Размер */
-  size: 's' | 'm' | 'l'
-  kind: 'fill' | 'outline'
-}
+// type Props2 = {
+//   kind2: 'fill' | 'outline',
+//   kind3: 'fill' | 'outline'
+// }
 
-type Props2 = {
-  kind2: 'fill' | 'outline',
-  kind3: 'fill' | 'outline'
-}
+// const C = (props: Props2) => null
+// const A = React.createElement(C)
 
-const C = (props: Props2) => null
-const A = React.createElement(C)
-
-export const component = new Component(properties)
-  .name('Button')
-  .types<Props>()
-  .defaultProps({
-    size: 's',
-  })
-  .mapProps((props) => ({
-    size: 'm',
-  }))
-  // .slot('base', {
-  //   asString: 'kkffs',
-  //   display: (props) => 'block',
-  //   color: ['black', 'black16'],
-  //   fontSize: 'xxl',
-  //   hover: {
-  //     display: 'block',
-  //     color: ['black16', 'black16'],
-  //   }
-  // }
-  .slot('base2', {
-    // display: 'block',
-    asString: `
-      color: red;
-    `,
-    color: ['black32', 'blue900'],
-    display: props => 'inline',
-    // hover: {
-    //   disabled: {
-    //     display: ['inline'],
-    //     color: ['black24', 'red50'],
-    //     fontSize: (props) => 'm',
-    //   }
-    // },
-    children: {
-      component: (props, _) => C,
-      c: {
-        kind2: (p) => ''
-      }
-      // component: C,
-      // kind2: 'fill',
-      // kind2: (p) => 'fill',
-      // color: 'black12',
-    }
-  })
-  export const _ = <T>(): T => {
-    throw new Error("hole"); 
-}
-
+// export const component = new Component(properties)
+//   .name('Button')
+//   .types<Props>()
+//   .defaultProps({
+//     size: 's',
+//   })
+//   .mapProps((props) => ({
+//     size: 'm',
+//   }))
+//   // .slot('base', {
+//   //   asString: 'kkffs',
+//   //   display: (props) => 'block',
+//   //   color: ['black', 'black16'],
+//   //   fontSize: 'xxl',
+//   //   hover: {
+//   //     display: 'block',
+//   //     color: ['black16', 'black16'],
+//   //   }
+//   // }
+//   // .slot('base2', {
+//   //   // display: 'block',
+//   //   asString: `
+//   //     color: red;
+//   //   `,
+//   //   color: ['black32', 'blue900'],
+//   //   display: props => 'inline',
+//   //   // hover: {
+//   //   //   disabled: {
+//   //   //     display: ['inline'],
+//   //   //     color: ['black24', 'red50'],
+//   //   //     fontSize: (props) => 'm',
+//   //   //   }
+//   //   // },
+//   //   children: {
+//   //     component: (props, _) => C,
+//   //     c: {
+//   //       kind2: (p) => ''
+//   //     }
+//   //     // component: C,
+//   //     // kind2: 'fill',
+//   //     // kind2: (p) => 'fill',
+//   //     // color: 'black12',
+//   //   }
+//   // })
+//   export const _ = <T>(): T => {
+//     throw new Error("hole"); 
+// }

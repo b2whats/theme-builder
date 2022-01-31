@@ -112,7 +112,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
   objectStyleToString(tokens: DeepPartial<this['properties']['tokens']>, props: Props, rules: {}): string {
     let css = ''
-    const responsive: string[] = []
+    const responsiveCss: string[] = []
 
     if (rules['asString']) {
       css += rules['asString']
@@ -130,11 +130,7 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
       if (Array.isArray(value)) {
         for (let index = 0; index < value.length; index++) {
-          if (index === 0) {
-            css += this.properties.compute(rule, value[index], tokens)
-          } else {
-            responsive[index - 1] = (responsive[index - 1] || '') + this.properties.compute(rule, value[index], tokens)
-          }
+          responsiveCss[index] = this.properties.compute(rule, value[index], tokens)
         }
         continue
       }
@@ -146,11 +142,12 @@ export class Component<Name extends string = never, Props = never, Slots extends
       css += this.properties.compute(rule, value, tokens)
     }
 
-    if (responsive.length) {
-      const responsiveRules = this.properties.breakpointsRules(tokens)
+    if (responsiveCss.length) {
+      const responsiveRules = this.properties.breakpointsRule(tokens)
+      css += responsiveCss[0]
 
-      for (let index = 0; index < responsive.length; index++) {
-        css += responsive[index] !== '' ? `${responsiveRules[index]} {${responsive[index]}}` : ''
+      for (let index = 1; index < responsiveCss.length; index++) {
+        css += responsiveCss[index] !== '' ? `${responsiveRules[index]} {${responsiveCss[index]}}` : ''
       }
     }
 

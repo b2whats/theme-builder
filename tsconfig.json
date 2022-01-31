@@ -16,6 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
   },
-  "include": ["src"],
+  "include": ["src", "benchmark"],
   "exclude": ["node_modules"]
 }
