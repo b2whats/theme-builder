@@ -61,8 +61,6 @@ export type Narrow<A> = Cast<A,
   | ({ [K in keyof A]: A[K] extends (...args: any[]) => void ? A[K] : Narrow<A[K]> })
 >
 
-type A = {a: number} & { b: string}
-type R = FlattenObjectType<A>
 export type FlattenType<T> = T extends unknown ? T : never
 
 export type FlattenObjectType<T> = {
@@ -84,9 +82,10 @@ type LeavesEntries<
   : never
 
 
-type CastToPrimitive<T> =
+export type CastToPrimitive<T> =
   T extends string ? string :
   T extends number ? number :
+  T extends boolean ? boolean :
   T extends any ? T :
   never
 
@@ -128,8 +127,13 @@ type IntersectionOf<T> =
 
 export type UnionToTuple<T> = IntersectionOf<UnionToIntersection<UnionToFunctions<T>>>
 
-export type TupleOf<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never
+type OptionalTuple<T> = {
+  [K in keyof T]?: T[K] | null 
+}
+
+export type TupleOf<T, N extends number, Optional = false> = N extends N ? number extends N ? T[] : Optional extends true ? OptionalTuple<_TupleOf<T, N, []>> : _TupleOf<T, N, []> : never
 type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N ? R : _TupleOf<T, N, [T, ...R]>
+
 export type DeepPartial<T> = T extends any ? {
   [P in keyof T]?: 
     T[P] extends any[] | [] ? T[P] :
@@ -186,19 +190,27 @@ export type MaybeArray<Item> = Item[] | Item
 
 export type NoInfer<T> = T extends infer S ? S : never;
 
-type DotPrefix<T extends string> = T extends "" ? "" : `.${T}`
-type IfTupleOrArrayToObject<T> = Omit<T, 
+type TryTupleOrArrayToObject<T> = T extends object ? Omit<T, 
   T extends any[] // T array or tuple
     ? Exclude<keyof any[], any[] extends T ? number : never> // if array leave the number
     : never
->
+> : T
+type OPOPO<T> = T extends object ? 1 : 2
+type OROR = OPOPO<[1,2,3] | null>
 
-export type Paths<T> = (T extends object
-  ? { [K in keyof IfTupleOrArrayToObject<T> & (string | number)]: `${K}${DotPrefix<Paths<T[K]>>}` | `${K}` }[keyof IfTupleOrArrayToObject<T> & (string | number)]
-  : ''
-) extends infer D ? Extract<D, string> : never
+export type Paths<T, Leaves = false, ToObject = TryTupleOrArrayToObject<T>> = ToObject extends object ? {
+  [K in keyof ToObject & (string | number)]: ToObject[K] extends object
+    ? (Leaves extends true ? never : `${K}`) | `${K}.${Paths<ToObject[K]>}`
+    : `${K}`
+}[keyof ToObject & (string | number)] : never
 
-type TRRE = IfTupleOrArrayToObject<{a: 1}>
+export type ObjectPropertiesType<T, Leaves = false, MaybeObject = TryTupleOrArrayToObject<T>> = MaybeObject extends object ? {
+  [K in keyof MaybeObject]: Leaves extends true
+    ? ObjectPropertiesType<MaybeObject[K], Leaves>
+    : MaybeObject[K]
+}[keyof MaybeObject] : MaybeObject
+
+type TRRE = ObjectPropertiesType<Test>
 type Test = {
   nestedObj: {
     a: {
@@ -208,13 +220,21 @@ type Test = {
   }
   arr: [number, string]
   nestedTuple: [{ a: 1}, { b: 2 }]
-  nestedArr: { a: 1}[]
+  // nestedArr: { a: 1}[]
   nestedNumberObject: {
     1?: number
     2: string
   }
 }
+type NestedKeyOf<ObjectType extends object> = {[Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object 
+? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
+: `${Key}`
+}[keyof ObjectType & (string | number)];
+
+type qqq = NestedKeyOf<Test>
 type OPaths = Paths<Test>
+type PPP<T> = T extends object ? 1 : 2
+type PP = PPP<Test | undefined>
 
 type PathToTuple<Path> = Path extends `${infer Key}.${infer Rest}`
   ? [TryCastToNumber<Key>, Rest]
@@ -224,31 +244,33 @@ type OrUndefinedPath<T> = T extends undefined ? undefined : never
 export type PathValue<Data, Path, MaybeUndefined = never> = PathToTuple<Path> extends [infer Key, infer Rest] ? 
   Key extends keyof Data
     ? [Rest] extends [never]
-      ? Data[Key] extends object | undefined ? TryCastToNumber<Paths<NonNullable<Data[Key]>>> : Data[Key] | MaybeUndefined
+      ? Data[Key] | MaybeUndefined
       : PathValue<NonNullable<Data[Key]>, Rest, [MaybeUndefined] extends [never] ? OrUndefinedPath<Data[Key]> : MaybeUndefined>
     : never
 : never
+
+export type TokenProps<T, Strategy extends 'leaves' | 'paths' | 'single'  | 'default' = 'default'> = T extends object ?
+  Strategy extends 'leaves' ? TryCastToNumber<Paths<T, true>> :
+  Strategy extends 'paths' ? TryCastToNumber<Paths<T>> :
+  Strategy extends 'single'?  TryCastToNumber<keyof TryTupleOrArrayToObject<T>> :
+  T
+: boolean
 
 export type IsPrimitive<T> = 
   unknown extends T ? false :
   number extends T ? true :
   string extends T ? true :
+  boolean extends T ? true :
   false
 
 type ye = IsPrimitive<never>
 type Val = PathValue<Test, 'nestedTuple'>
-type Val1 = PathValue<Test, 'nestedArr'>
-type Val3 = PathValue<Test, 'nestedObj.a.a1'>
+type Val1 = PathValue<Test, 'nestedTuple'>
+type Val3 = PathValue<Test, 'nestedObj'>
 type Val2 = PathValue<Test, 'nestedNumberObject.1'>
-
-type arr = 1 extends keyof Test['nestedTuple'] ? 1 : 2
-type WQ = [1, 2, 3] extends any[] ? 1 : 2
-type WQ1 = any[] extends (1 | 2 | 3)[] ? 1 : 2
 
 export type ComponentType<T = any, R = null | undefined> = (props: T) => R
 export type FunctionPartialAttr<T> = T extends ComponentType<infer P, infer R> ? ComponentType<Partial<P>, R> : unknown
-
-
 
 type CreateNumberList<
   N extends number,
@@ -258,7 +280,7 @@ type CreateNumberList<
 type NumberList = CreateNumberList<30>
 
 type TryCastToNumber<T> = T extends keyof NumberList ? NumberList[T] : T
-export type ValueByToken<U extends string, T extends U> = U extends `${T}.${infer R}` ? TryCastToNumber<R> : never
+export type MaybeTupple<Types, Arity extends number> = Partial<TupleOf<Types, Arity>> | Types
 
 export function debounce<V extends any[], R>(func: (...args: V) => R, timeout = 300){
   let timer: NodeJS.Timeout
@@ -274,4 +296,7 @@ export function isEmptyObject(obj: object) {
     return false
   }
   return true
-}
+}// {a: 1} & {b:2} => {a: 1, : 2}
+export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+
+

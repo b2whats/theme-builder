@@ -5,7 +5,8 @@ import { createHook } from '../../src/createHook'
 import { properties } from '../../src/fixtures'
 import type { ButtonProps } from './contract'
 
-const Icon = (props: { color: string }) => React.createElement('span', props, 'text')
+const Icon = (props: { color?: string }) => React.createElement('span', props, 'text')
+const Icon2 = (props: { color?: string }) => React.createElement('span', props, 'text')
 
 const buttonTheme = new Component(properties)
   .name('Button')
@@ -39,7 +40,7 @@ const buttonTheme = new Component(properties)
   .slot('showPassword', {
     fontSize: (props) => 'xl',
     children: {
-      component: Icon,
+      component: (dd: ButtonProps) => dd ? Icon : Icon2,
       color: ({ variant }) => variant === 'primary' ? 'black16' : 'black32'
     }
   })

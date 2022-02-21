@@ -36,7 +36,7 @@ console.log('render')
           {(ThemeChildren) => <ThemeChildren />}
         </Box>
         <Box slot='base' />
-        <Box as={props.href ? 'a' : 'button'} slot='showPassword' parentPhase={phase}>
+        <Box as={props.href ? 'a' : 'button'} slot='showPassword' parentPhase={phase} name=''>
           {(ThemeChildren) => conditional ? <ThemeChildren /> : props.iconBefore}
         </Box>
         <Box as={props.href ? 'a' : 'button'} slot='showPassword' >

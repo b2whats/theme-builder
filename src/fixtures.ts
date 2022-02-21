@@ -3,7 +3,7 @@
 import { Tokens } from './Tokens'
 import { Properties } from './Properties'
 import { ObjectPaths } from './utils'
-// import { Component } from './Component'
+import { Component } from './Component'
 import React from 'react'
 
 export const tokens = new Tokens({
@@ -201,161 +201,164 @@ type RE = ObjectPaths<typeof tokens['scheme']>
 export const properties = new Properties(tokens)
   .breakpoints({
     token: 'breakpoints',
-    toString: (value) => `@media screen and (min-width: ${value})`
+    cssText: (value) => `@media screen and (min-width: ${value})`
   })
   .add('grow', {
-    toString: (value: boolean) => `flex-grow: ${value ? '1' : '0'};`
+    //custom: (value) => `flex-grow: ${value ? '1' : '0'};`,
+    cssText: (value: 'block' | 'flex' | 'inline') => `display: ${value};`
   })
-  .add('display', {
-    toString: (value: 'block' | 'flex' | 'inline') => `display: ${value};`
-  })
-  .add('fontFamily', {
-    toString: (value: string) => `font-family: ${value};`
-  })
+  // .add('display', {
+  //   cssText: (value: 'block' | 'flex' | 'inline') => `display: ${value};`
+  // })
+  // .add('fontFamily', {
+  //   cssText: (value: string) => `font-family: ${value};`
+  // })
   .add('fontSize', {
-    token: 'font.fontSize',
-    toString: (value) => `font-size: ${value}px;`
+    token: 'font',
+    tokenType: 'single',
+    cssText: (value: string) => `font-size: ${value}px;`
   })
-  .add('lineHeight', {
-    token: 'font.lineHeight',
-    toString: (value) => `line-height: ${value};`
-  })
-  .add('italic', {
-    toString: (value: boolean) => `font-style: ${value ? 'italic' : 'normal'};`
-  })
-  .add('noWrap', {
-    toString: (value: boolean) => `white-space: ${value ? 'nowrap' : 'normal'};`
-  })
-  .add('pre', {
-    toString: (value: boolean) => `white-space: ${value ? 'pre-wrap' : 'normal'};`
-  })
-  .add('uppercase', {
-    toString: (value: boolean) => `text-transform: ${value ? 'uppercase' : 'none'};`
-  })
-  .add('cursor', {
-    toString: (value: string) => `cursor: ${value};`
-  })
-  .add('smoothing', {
-    toString: (value: 'auto' | 'antialiased' | 'subpixel') => {
-      const webkitSmoothing = { auto: 'auto', antialiased: 'antialiased', subpixel: 'subpixel-antialiased' }
-      const mozSmoothing = { auto: 'auto', antialiased: 'grayscale', subpixel: 'grayscale' }
+  // .add('lineHeight', {
+  //   token: 'font.lineHeight',
+  //   cssText: (value) => `line-height: ${value};`
+  // })
+  // .add('italic', {
+  //   cssText: (value: boolean) => `font-style: ${value ? 'italic' : 'normal'};`
+  // })
+  // .add('noWrap', {
+  //   cssText: (value: boolean) => `white-space: ${value ? 'nowrap' : 'normal'};`
+  // })
+  // .add('pre', {
+  //   cssText: (value: boolean) => `white-space: ${value ? 'pre-wrap' : 'normal'};`
+  // })
+  // .add('uppercase', {
+  //   cssText: (value: boolean) => `text-transform: ${value ? 'uppercase' : 'none'};`
+  // })
+  // .add('cursor', {
+  //   cssText: (value: string) => `cursor: ${value};`,
+  // })
+  // .add('smoothing', {
+  //   cssText: (value: 'auto' | 'antialiased' | 'subpixel') => {
+  //     const webkitSmoothing = { auto: 'auto', antialiased: 'antialiased', subpixel: 'subpixel-antialiased' }
+  //     const mozSmoothing = { auto: 'auto', antialiased: 'grayscale', subpixel: 'grayscale' }
 
-      return `
-        -webkit-font-smoothing: ${webkitSmoothing[value]};
-        -moz-osx-font-smoothing: ${mozSmoothing[value]};
-      `
-    }
-  })
-  .add('shrink', {
-    toString: (value) => `flex-shrink: ${value ? '1' : '0'};`
-  })
-  .add('borderRadius', {
-    token: 'dimension.borderRadius',
-    toString: (value: 'circle' | number) => `border-radius: ${value === 'circle' ? '100' : value}px;`
-  })
-  .add('column', {
-    toString: (value: boolean) => `flex-direction: ${value ? 'column' : 'row'};`
-  })
-  .add('color', {
-    token: 'palette', 
-    toString: (value) => `color: ${value};`
-  })
-  .add('bg', {
-    token: 'palette', 
-    toString: (value) => `background-color: ${value};`
-  })
-  .add('opacity', {
-    token: 'opacity', 
-    toString: (value) => `opacity: ${value};`
-  })
-  .add('colorHEX', {
-    token: 'palette', 
-    toString: (value: string) => `color: ${value};`
-  })
-  .add('shadow', {
-    token: 'shadow',
-    toString: (value) => `box-shadow: ${value};`
-  })
-  .add('height', {
-    token: 'dimension.rowHeight',
-    toString: (value: number) => `height: ${value}px;`
-  })
-  .add('focus', {
-    token: 'focus',
-    toString: (value) =>  value ? `
-      &&:focus{
-        box-shadow: ${value};
-        position: relative;
-        z-index: 2;
-      }
-    ` : ''
-  })
+  //     return `
+  //       -webkit-font-smoothing: ${webkitSmoothing[value]};
+  //       -moz-osx-font-smoothing: ${mozSmoothing[value]};
+  //     `
+  //   }
+  // })
+  // .add('shrink', {
+  //   cssText: (value) => `flex-shrink: ${value ? '1' : '0'};`
+  // })
+  // .add('borderRadius', {
+  //   token: 'dimension.borderRadius',
+  //   cssText: (value: 'circle' | number) => `border-radius: ${value === 'circle' ? '100' : value}px;`
+  // })
+  // .add('column', {
+  //   cssText: (value: boolean) => `flex-direction: ${value ? 'column' : 'row'};`
+  // })
+  // .add('color', {
+  //   token: 'palette', 
+  //   cssText: (value) => `color: ${value};`
+  // })
+  // .add('bg', {
+  //   token: 'palette', 
+  //   cssText: (value) => `background-color: ${value};`
+  // })
+  // .add('opacity', {
+  //   token: 'opacity', 
+  //   cssText: (value) => `opacity: ${value};`
+  // })
+  // .add('colorHEX', {
+  //   token: 'palette', 
+  //   cssText: (value: string) => `color: ${value};`
+  // })
+  // .add('shadow', {
+  //   token: 'shadow',
+  //   cssText: (value: string) => `box-shadow: ${value};`
+  // })
+  // .add('height', {
+  //   token: 'dimension.rowHeight',
+  //   cssText: (value: number) => `height: ${value}px;`
+  // })
+  // .add('focus', {
+  //   token: 'focus',
+  //   cssText: (value) =>  value ? `
+  //     &&:focus{
+  //       box-shadow: ${value};
+  //       position: relative;
+  //       z-index: 2;
+  //     }
+  //   ` : ''
+  // })
   .pseudoSelectors({
     hover: (rules) => `&&:hover{${rules}}`,
-    active: (rules) => `&&&:active{${rules}}`,
+    // active: (rules) => `&&&:active{${rules}}`,
     disabled: (rules) => `&&&&:disabled{${rules}}`,
   })
 
-const a = properties.list()['shadow']
+const a = properties.list()['fontSize']
 // properties.compute('fontSize', 's', tokens.scheme)
-// type Props = {
-//   /** Размер */
-//   size: 's' | 'm' | 'l'
-//   kind: 'fill' | 'outline'
-// }
+type Props = {
+  /** Размер */
+  size: 's' | 'm' | 'l'
+  kind: 'fill' | 'outline'
+}
 
-// type Props2 = {
-//   kind2: 'fill' | 'outline',
-//   kind3: 'fill' | 'outline'
-// }
+type Props2 = {
+  kind2: 'fill' | 'outline',
+  kind3: 'fill' | 'outline'
+}
+type Props3 = {
+  size: 's' | 'm' | 'l'
+  size2: 's' | 'm' | 'l'
+}
 
-// const C = (props: Props2) => null
-// const A = React.createElement(C)
+const A = React.createElement('div')
+const C = (props: Props2) => A
+const C1 = (props: Props2) => A
 
-// export const component = new Component(properties)
-//   .name('Button')
-//   .types<Props>()
-//   .defaultProps({
-//     size: 's',
-//   })
-//   .mapProps((props) => ({
-//     size: 'm',
-//   }))
-//   // .slot('base', {
-//   //   asString: 'kkffs',
-//   //   display: (props) => 'block',
-//   //   color: ['black', 'black16'],
-//   //   fontSize: 'xxl',
-//   //   hover: {
-//   //     display: 'block',
-//   //     color: ['black16', 'black16'],
-//   //   }
-//   // }
-//   // .slot('base2', {
-//   //   // display: 'block',
-//   //   asString: `
-//   //     color: red;
-//   //   `,
-//   //   color: ['black32', 'blue900'],
-//   //   display: props => 'inline',
-//   //   // hover: {
-//   //   //   disabled: {
-//   //   //     display: ['inline'],
-//   //   //     color: ['black24', 'red50'],
-//   //   //     fontSize: (props) => 'm',
-//   //   //   }
-//   //   // },
-//   //   children: {
-//   //     component: (props, _) => C,
-//   //     c: {
-//   //       kind2: (p) => ''
-//   //     }
-//   //     // component: C,
-//   //     // kind2: 'fill',
-//   //     // kind2: (p) => 'fill',
-//   //     // color: 'black12',
-//   //   }
-//   // })
-//   export const _ = <T>(): T => {
-//     throw new Error("hole"); 
-// }
+export const component = new Component(properties)
+  .name('Button')
+  .types<Props>()
+  .defaultProps({
+    size: 's',
+  })
+  .mapProps((props) => ({
+    size: 'm',
+  }))
+  .slot('base', {
+    asString: 'kkffsss',
+    display: (props) => 'block',
+    color: ['black', null],
+    fontSize: 'xxl',
+    hover: {
+      grow: true
+    }
+  })
+  .slot('base2', {
+    asString: `
+      color: red;
+    `,
+    color: ['black32', 'black32'],
+    display: props => 'inline',
+    hover: {
+      disabled: {
+        display: ['inline'],
+        color: ['black24', 'red50'],
+        fontSize: (props) => 'm',
+      }
+    },
+    children: {
+      component: (props: Props) => props.size === 'm' ? C1 : C,
+      kind2: 'fill',
+      // component: C,
+      // kind2: 'fill',
+      // kind2: (p) => 'fill',
+      //color: 'black12',
+    }
+  })
+  export const _ = <T>(): T => {
+    throw new Error("hole"); 
+}

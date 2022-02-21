@@ -13,7 +13,7 @@ type AsType =
 type Join<L, R> = R & (L extends any ? Omit<L, keyof R> : never)
 type BoxChildren = React.ReactChild | React.ReactChild[] | null | undefined
 
-type BoxProps<As, Name, Element, ParentPhase, ThemeChildren> = Join<(
+type BoxProps<As, Name, Element, ParentPhase, ChildrenComponent> = Join<(
   [Element] extends [React.FunctionComponent<infer FProps>] ? FProps & {} :
   [Element] extends [React.ComponentClass<infer CProps, any>] ? CProps & {} :
   Element extends React.DetailedHTMLProps<infer A, infer B> ? React.DetailedHTMLProps<A, B> :
@@ -22,21 +22,19 @@ type BoxProps<As, Name, Element, ParentPhase, ThemeChildren> = Join<(
   as?: As,
   slot: Name,
   parentPhase?: ParentPhase,
-  children?: ThemeChildren extends { children: infer C }
-    ? C extends undefined
+  children?: ChildrenComponent extends undefined
       ? [ParentPhase] extends [never] ? BoxChildren : ((phase: Phase) => React.ReactChild) | BoxChildren
-      : (themeChildren: FunctionPartialAttr<C>) => [ParentPhase] extends [never] ? BoxChildren : ((phase: Phase) => React.ReactChild) | BoxChildren
-    : never
+      : (themeChildren: ChildrenComponent) => [ParentPhase] extends [never] ? BoxChildren : ((phase: Phase) => React.ReactChild) | BoxChildren
 }>
 
 type BoxComponent<Slots> = {
   <
     Name extends keyof StyleSlots<Slots>,
-    ThemeChildren extends StyleSlots<Slots>[Name],
+    ChildrenComponent extends StyleSlots<Slots>[Name]['children'],
     As extends AsType = typeof defaultElement,
     Element = As extends keyof JSX.IntrinsicElements ? JSX.IntrinsicElements[As] : As,
     ParentPhase extends ICellx<Phase, any> = never,
-  >(props: BoxProps<As, Name, Element, ParentPhase, ThemeChildren>): any
+  >(props: BoxProps<As, Name, Element, ParentPhase, ChildrenComponent>): any
 }
 declare module "react" {
   function forwardRef<T, P = {}>(
@@ -549,7 +547,7 @@ test20({
   // component: A,
   //a: [(p) => 'aa']
   // a: _(),
-  a: 'a',
+  a: (c) => 'a',
   //d: (d) => 'a',
 })
 
@@ -629,3 +627,33 @@ const foo = <
 
 // const foo: <PropertyKey, Json, { a: 42; b: "hello"; }
 foo([{ a: 42, b: 'hello' }])
+
+
+
+type Obj25<P> =  number extends number ? {
+  component?: (g: P) => void 
+}
+: never
+
+
+
+// extends { [K in keyof P]: (c: Cond) => P[K
+function test25<P extends {}>(o:Obj25<P>) { return null as any }
+
+type Inf<F> = F extends (a: infer A) => infer B ? [A, B] : never
+type TES = Inf<(((a: 1) => 1) | ((a: 11) => 2))>
+type EEE = (((a: 1) => 1) | ((a: 11) => 2)) extends ((a: infer A) => infer B) ? [A, B] : never
+test25({
+  component: ((c) => {}) as ((g: {a: 11}) => {} | ((gs: {b: 2}) => {}))
+
+})
+
+const aaa: {a?: number, b: string} | {b: number, c?: 3} = {
+  a:11, b: 4, c: 3
+}
+
+type UnionOfFunctions = ((arg: {a: number} ) => any) | ((arg: {b: string}) => any)
+
+// [number] | [string], which likely means UnionOfFunctions can be executed with number | string
+type TypedWithParameters = Parameters<UnionOfFunctions>
+

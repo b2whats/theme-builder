@@ -5,29 +5,27 @@ import type { DeepPartial, MaybeArray, NoInfer, ComponentType } from './utils'
 import { objectHash, isEmptyObject } from './utils'
 
 type OrFunction<Args, Return> = (props: Args) => Return
-type AddPropertyFunction<L, Props> = L extends object ? {
-  [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K] | undefined>
-} : never
+type AddPropertyFunction<L, Props> = {
+  [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K]>
+}
 
 type AdditionalProps<Props> = {
-  withProps?: boolean | ((props: Partial<Props>) => Partial<Props>)
+  withProps?: boolean | ((props: Props) => Partial<Props>)
   className?: string
   asString?: string
 }
-type Nullable = null | undefined 
-type ChildrenBlock<C extends (...args: any) => any, StyleProps, Props> = {
+
+type SimpleComponent<P = any> = ComponentType<P, JSX.Element>
+type CurryComponent<C = any, P = any> = (cond: C) => SimpleComponent<P>
+type ChildrenBlock<ChildrenProps, StyleProps, Props> = {
   children?: {
-    component: C //| ((props: Props, _: never) => ComponentType) | (ComponentType) 
-    c?: C extends ((props: Props, _: never) => ComponentType<infer P>) ? AddPropertyFunction<P, Props> : unknown
-  }
-  // & (C extends ComponentType<infer P> ? AddPropertyFunction<P, Props> : unknown)
-  // & (C extends ((props: Props, _: never) => ComponentType<infer P>) ? AddPropertyFunction<P, Props> : unknown)
-  // & (C extends ((props: Props, _: never) => infer R) ? R extends ComponentType<infer P> ? AddPropertyFunction<P, Props> : unknown: unknown)
+    component?: CurryComponent<Props, ChildrenProps> | SimpleComponent<ChildrenProps>
+  } & (ChildrenProps extends object ? AddPropertyFunction<ChildrenProps, Props> : Partial<StyleProps>)
 }
 
 type Flatten<T> = T extends unknown ? T : never
 
-type PropertyOptions<Builder, Props, ChildrenComponent> = Builder extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> extends infer PF ? PF & AdditionalProps<Props> & ChildrenBlock<ChildrenComponent, PF, Props> : never : never
+type PropertyConfig<List, Props, ChildrenProps> = List extends Properties<any, infer L, any> ? AddPropertyFunction<L, Props> & AdditionalProps<Props> & ChildrenBlock<ChildrenProps, L, Props> : never
 type Slot<Name extends string, List> = {
   [key in Name]: List
 }
@@ -35,7 +33,9 @@ type Slot<Name extends string, List> = {
 export type StyleSlots<Slots> = {
   [K in keyof Slots]: {
     className: string,
-    children: Slots[K] extends { children: { component: infer C, [key: string]: any } } ? C : undefined
+    children: Slots[K] extends { children: { component: infer C, [key: string]: any } }
+      ? C extends CurryComponent ? ReturnType<C> : C
+      : undefined
     childrenProps:  Slots[K] extends { children: infer C } ? Flatten<Pick<C, Exclude<keyof C, 'component'>>> : undefined,
   }
 }
@@ -47,21 +47,26 @@ type NonArrayObject = {
 
 type Validate<T, U> = U & {
   [K in keyof T]: K extends Extract<keyof T, keyof U>
-    ? (T[K] extends NonArrayObject ? Validate<T[K], NonNullable<U[K]>> :  T[K])
+    ? (T[K] extends NonArrayObject ? Validate<T[K], NonNullable<U[K]>> : T[K])
     : `Not possible property key - ${K & string}`
 }
 
 type ComponentTheme<Props> = {
-  defaultProps?: Props
-  mapProps?: (props: Props) => Props
+  defaultProps?: Partial<Props>
+  mapProps?: (props: Props) => Partial<Props>
   slots: {
-    [key: string]: AdditionalProps<Props> & ChildrenBlock<unknown, {}, any>
+    [key: string]: AdditionalProps<Props> & ChildrenBlock<any, {}, any>
   }
 }
 type ComponentThemeAsList<Name extends string, Props> = {
   [key in Name]?: Partial<ComponentTheme<Props>>
 }
-export class Component<Name extends string = never, Props = never, Slots extends Record<string, any> = {}, PropertiesList extends Properties<any, any> = never, PR = {}> {
+export class Component<
+  Name extends string = never,
+  Props = never,
+  Slots extends Record<string, any> = {},
+  PropertiesList extends Properties<any, any> = never
+> {
   componentName!: string
   theme: ComponentTheme<Props> = {
     defaultProps: undefined,
@@ -71,11 +76,9 @@ export class Component<Name extends string = never, Props = never, Slots extends
   private styleCache: Map<object, Map<string, object>> = new Map()
   private cache: Map<object, object> = new Map()
 
-  constructor(
-    public properties: PropertiesList,
-  ) {}
+  constructor(public properties: PropertiesList) {}
 
-  types<P extends object>(): Component<Name, Partial<P>, Slots, PropertiesList> {
+  types<P extends Record<string, any>>(): Component<Name, P, Slots, PropertiesList> {
     return this as any
   }
 
@@ -84,26 +87,26 @@ export class Component<Name extends string = never, Props = never, Slots extends
 
     return this 
   }
-  defaultProps(props: Props) {
+
+  defaultProps(props: Partial<Props>) {
     this.theme.defaultProps = props
 
     return this
   }
-  mapProps(map: (props: Props) => Props) {
+
+  mapProps(map: (props: Props) => Partial<Props>) {
     this.theme.mapProps = map
 
     return this
   }
 
-  
   slot<
     SlotName extends string,
-    ChildrenComponent,
     Config,
-    StyledProps = PropertiesList extends Properties<any, infer L, any> ? L : unknown,
+    ChildrenProps,
   >(
     name: SlotName,
-    config: PropertyOptions<StyledProps, Props, ChildrenComponent> //| Validate<Config, PropertyOptions<PropertiesList, Props, ChildrenComponent>>
+    config: Validate<Config, PropertyConfig<PropertiesList, Props, ChildrenProps>>
   ): Component<Name, Props, Slots & Slot<SlotName, Config>, PropertiesList> {
     this.theme.slots[name] = config
     
@@ -247,3 +250,5 @@ export const utils: SlotUtils = {
     }
   },
 }
+
+
