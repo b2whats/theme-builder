@@ -249,7 +249,7 @@ export type PathValue<Data, Path, MaybeUndefined = never> = PathToTuple<Path> ex
     : never
 : never
 
-export type TokenProps<T, Strategy extends 'leaves' | 'paths' | 'single'  | 'default' = 'default'> = T extends object ?
+export type TokenValues<T, Strategy extends 'leaves' | 'paths' | 'single'  | 'default' = 'default'> = T extends object ?
   Strategy extends 'leaves' ? TryCastToNumber<Paths<T, true>> :
   Strategy extends 'paths' ? TryCastToNumber<Paths<T>> :
   Strategy extends 'single'?  TryCastToNumber<keyof TryTupleOrArrayToObject<T>> :
@@ -282,6 +282,10 @@ type NumberList = CreateNumberList<30>
 type TryCastToNumber<T> = T extends keyof NumberList ? NumberList[T] : T
 export type MaybeTupple<Types, Arity extends number> = Partial<TupleOf<Types, Arity>> | Types
 
+export type NestedRecord<Keys extends PropertyKey, List, Level extends number = 0> = {
+  [K in Keys]: List & ([Prev[Level]] extends [never] ? unknown : NestedRecord<Keys, List, Prev[Level]>)
+}
+
 export function debounce<V extends any[], R>(func: (...args: V) => R, timeout = 300){
   let timer: NodeJS.Timeout
 
@@ -296,7 +300,6 @@ export function isEmptyObject(obj: object) {
     return false
   }
   return true
-}// {a: 1} & {b:2} => {a: 1, : 2}
+}
+// {a: 1} & {b:2} => {a: 1, : 2}
 export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-
-

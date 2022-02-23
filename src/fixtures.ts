@@ -21,6 +21,8 @@ export const tokens = new Tokens({
       xs: 11,
     },
 
+ 
+
     lineHeight: {
       none: 1.12,
       normal: 1.375,
@@ -195,9 +197,11 @@ export const tokens = new Tokens({
   breakpoints: ['40em', '52em', '64em', '80em']
 })
 
-type RE = ObjectPaths<typeof tokens['scheme']>
+type RE = ObjectPaths<typeof tokens['scheme']> | StringConstructor
 
-
+const aa = {
+  a: [Number, 1, '2', String]
+}
 export const properties = new Properties(tokens)
   .breakpoints({
     token: 'breakpoints',
@@ -216,7 +220,8 @@ export const properties = new Properties(tokens)
   .add('fontSize', {
     token: 'font',
     tokenType: 'single',
-    cssText: (value: string) => `font-size: ${value}px;`
+    additionalValues: ['eee', 111, String],
+    cssText: (value) => `font-size: ${value}px;`
   })
   // .add('lineHeight', {
   //   token: 'font.lineHeight',
@@ -282,23 +287,23 @@ export const properties = new Properties(tokens)
   //   token: 'dimension.rowHeight',
   //   cssText: (value: number) => `height: ${value}px;`
   // })
-  // .add('focus', {
-  //   token: 'focus',
-  //   cssText: (value) =>  value ? `
-  //     &&:focus{
-  //       box-shadow: ${value};
-  //       position: relative;
-  //       z-index: 2;
-  //     }
-  //   ` : ''
-  // })
-  .pseudoSelectors({
+  .add('focus', {
+    token: 'focus',
+    cssText: (value) =>  value ? `
+      &&:focus{
+        box-shadow: ${value};
+        position: relative;
+        z-index: 2;
+      }
+    ` : ''
+  })
+  .complexSelectors({
     hover: (rules) => `&&:hover{${rules}}`,
     // active: (rules) => `&&&:active{${rules}}`,
     disabled: (rules) => `&&&&:disabled{${rules}}`,
   })
 
-const a = properties.list()['fontSize']
+const a = properties.list()['focus']
 // properties.compute('fontSize', 's', tokens.scheme)
 type Props = {
   /** Размер */
@@ -344,7 +349,7 @@ export const component = new Component(properties)
     color: ['black32', 'black32'],
     display: props => 'inline',
     hover: {
-      disabled: {
+      ':dd': {
         display: ['inline'],
         color: ['black24', 'red50'],
         fontSize: (props) => 'm',

@@ -657,3 +657,18 @@ type UnionOfFunctions = ((arg: {a: number} ) => any) | ((arg: {b: string}) => an
 // [number] | [string], which likely means UnionOfFunctions can be executed with number | string
 type TypedWithParameters = Parameters<UnionOfFunctions>
 
+
+
+type RR = {
+  a: string,
+  [key: `:${string}` | `&${string}`]: {
+    aa: 1
+  }
+}
+
+const RR: RR = {
+  a: '',
+  '&:ww': {
+    aa: 1
+  }
+}
