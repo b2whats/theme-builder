@@ -10,7 +10,7 @@ test('Properties compute - without token', () => {
 
 test('Properties compute - with token resolve non nullish value', () => {
   const rule = properties.compute('opacity', 'minLevel', tokens.scheme)
-  const cache = properties.hasCache('color', 'black', tokens.scheme)
+  const cache = properties.hasCache('opacity', 'minLevel', tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()
@@ -18,7 +18,7 @@ test('Properties compute - with token resolve non nullish value', () => {
 
 test('Properties compute - with token resolve', () => {
   const rule = properties.compute('opacity', 'minLevel', tokens.scheme)
-  const cache = properties.hasCache('color', 'black', tokens.scheme)
+  const cache = properties.hasCache('opacity', 'minLevel', tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()

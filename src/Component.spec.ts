@@ -1,7 +1,17 @@
-import { properties, tokens, component } from './fixtures'
+import { properties, component } from './fixtures'
 import { Component } from './Component'
 import { literalValues } from './utils'
+import { cache } from '@emotion/css'
+import prettify from '@emotion/css-prettifier'
 
+const getCssText = (selector: string) => {
+  const cssHash = selector.substr(4)
+  const css = prettify(
+    cache.inserted[cssHash] as string
+  )
+
+  return css
+}
 expect.addSnapshotSerializer({
   test: (val) => typeof val === 'function',
   print: (val) => `${val}`
@@ -85,7 +95,11 @@ test('Component execute', () => {
   const theme = {}
   const result = component.execute(theme, props)
 
-  expect(result).toMatchSnapshot()
+  for (const key in result) {
+    const className = result[key].className
+    expect(`===========${key}===========\r\n${getCssText(className)}\r\n\r\n`).toMatchSnapshot()
+  }
+
 })
 
 test('Component execute array', () => {

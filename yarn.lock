@@ -424,6 +424,14 @@
     "@emotion/memoize" "^0.7.4"
     stylis "^4.0.3"
 
+"@emotion/css-prettifier@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@emotion/css-prettifier/-/css-prettifier-1.0.1.tgz#a3ce1667398e83701f52ec43938208faeef2e0a5"
+  integrity sha512-cA9Dtol47mtvWKasPC+8tkh2DS0wBkX0MMHKieXGSkGyx079V7yFY85KC0pPalcIy+vi0LbMR9DNyiJBqYgJ1Q==
+  dependencies:
+    "@emotion/memoize" "^0.7.4"
+    stylis "4.0.13"
+
 "@emotion/css@^11.0.0":
   version "11.0.0"
   resolved "https://registry.yarnpkg.com/@emotion/css/-/css-11.0.0.tgz#804dcec7e4990019a08e678c1145d34208923acb"
@@ -913,6 +921,11 @@
   dependencies:
     jest-diff "^26.0.0"
     pretty-format "^26.0.0"
+
+"@types/js-beautify@^1.13.3":
+  version "1.13.3"
+  resolved "https://registry.yarnpkg.com/@types/js-beautify/-/js-beautify-1.13.3.tgz#53839bb5b766d0fb45e87386100bb3bcbb7dca9d"
+  integrity sha512-ucIPw5gmNyvRKi6mpeojlqp+T+6ZBJeU+kqMDnIEDlijEU4QhLTon90sZ3cz9HZr+QTwXILjNsMZImzA7+zuJA==
 
 "@types/keyv@*":
   version "3.1.1"
@@ -1745,6 +1758,11 @@ data-urls@^2.0.0:
     abab "^2.0.3"
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
+
+date-fns@^2.28.0:
+  version "2.28.0"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.28.0.tgz#9570d656f5fc13143e50c975a3b6bbeb46cd08b2"
+  integrity sha512-8d35hViGYx/QH0icHYCeLmsLmMUheMmTyV9Fcm6gvNwdw31yXXH+O85sOBJ+OLnLQMKZowvpKb6FgMIQjcpvQw==
 
 debug@^2.2.0, debug@^2.3.3, debug@^2.6.0:
   version "2.6.9"
@@ -4763,6 +4781,11 @@ strip-final-newline@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/strip-final-newline/-/strip-final-newline-2.0.0.tgz#89b852fb2fcbe936f6f4b3187afb0a12c1ab58ad"
   integrity sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==
+
+stylis@4.0.13:
+  version "4.0.13"
+  resolved "https://registry.yarnpkg.com/stylis/-/stylis-4.0.13.tgz#f5db332e376d13cc84ecfe5dace9a2a51d954c91"
+  integrity sha512-xGPXiFVl4YED9Jh7Euv2V220mriG9u4B2TA6Ybjc1catrstKD2PpIdU3U0RKpkVBC2EhmL/F0sPCr9vrFTNRag==
 
 stylis@^4.0.3:
   version "4.0.3"

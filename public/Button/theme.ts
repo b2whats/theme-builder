@@ -30,11 +30,11 @@ const buttonTheme = new Component(properties)
     //   square: 's',
     //   circle: 'circle',
     // }),
-    color: ['blue500', 'red500', 'black'],
+    color: ['blue300', 'red300', 'black'],
     // fontSize: (props) => 'xl',
     // // height: (props) => props.size || 40,
     hover: {
-      color: 'black16',
+      color: 'black4',
     }
   })
   .slot('showPassword', {

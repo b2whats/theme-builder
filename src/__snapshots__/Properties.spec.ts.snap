@@ -4,7 +4,9 @@ exports[`Properties compute - with token no resolve 1`] = `"color: #hex;"`;
 
 exports[`Properties compute - with token resolve (deep) 1`] = `"font-size: 13px;"`;
 
-exports[`Properties compute - with token resolve 1`] = `"color: rgba(0, 0, 0, 1);"`;
+exports[`Properties compute - with token resolve 1`] = `"opacity: 0;"`;
+
+exports[`Properties compute - with token resolve non nullish value 1`] = `"opacity: 0;"`;
 
 exports[`Properties compute - with token(boolean) no resolve 1`] = `""`;
 

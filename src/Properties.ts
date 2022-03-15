@@ -1,34 +1,30 @@
 import { Tokens } from './Tokens'
-import type { CastToPrimitive, ObjectPropertiesType, MaybeTupple, UnionToTuple, Paths, PathValue, TokenValues, NoInfer, NestedRecord } from './utils'
+import type { ObjectPropertiesType, MaybeTupple, Paths, PathValue, TokenValues, NestedRecord } from './utils'
 import { get, memoize } from './utils'
 
-type Property<Name extends string, AdditionalValues, Breakpoints extends number = never> = {
+type Property<Name extends string, Values, Breakpoints extends number = never> = {
   [key in Name]: [Breakpoints] extends [never]
-    ? AdditionalValues | null | undefined
-    : MaybeTupple<AdditionalValues | null | undefined, Breakpoints> 
+    ? Values
+    : MaybeTupple<Values, Breakpoints> 
 }
 
 type String = (string & {})
 type Number = (number & {})
-type WithPrimitive<T, P> = 
-  T extends P ?
-    string extends T ? String :
-    number extends T ? Number :
-    T :
-  T
-
-type MergeTokenValuesWithAdditional<TokenValue, Additional> = any extends any
-  ? TokenValue | WithPrimitive<Additional, CastToPrimitive<TokenValue>>
-  : never
 
 type AdditionalList = string | number | StringConstructor | NumberConstructor | BooleanConstructor
 type AdditionalType<T> = 
   T extends StringConstructor ? String :
   T extends NumberConstructor ? Number :
+  T extends BooleanConstructor ? boolean :
   T
+type FilterBrandPrimitive<T> =
+  T extends String ? string :
+  T extends Number ? number :
+  T
+
 type PropertyConfig<TokensPath, TokenType, AdditionalValues, TokenValue = never> = {
   additionalValues?: AdditionalValues[],
-  cssText: (value: AdditionalType<AdditionalValues> | ([TokensPath] extends [never] ? never : ObjectPropertiesType<TokenValue, TokenType extends 'leaves' ? true : false>)) => string
+  cssText: (value: FilterBrandPrimitive<AdditionalType<AdditionalValues> | ([TokensPath] extends [never] ? never : ObjectPropertiesType<TokenValue, TokenType extends 'leaves' ? true : false>)>) => string
 } & ({
   token: TokensPath
   tokenType?: TokenType
@@ -39,7 +35,7 @@ type PropertyConfig<TokensPath, TokenType, AdditionalValues, TokenValue = never>
 
 type BreakpointsConfig<TokensPath> = {
   token: TokensPath
-  cssText: (value: string | number) => string
+  media: (value: string | number) => string
 }
 
 type PropertyValues<Values> = Values extends MaybeTupple<infer Value, number> ? Value : Values
@@ -86,7 +82,7 @@ export class Properties<
           : value
       }
 
-      return config.cssText ? config.cssText(value) : ''
+      return config.cssText(value)
     }
 
     return this
@@ -94,16 +90,17 @@ export class Properties<
   
   breakpoints<
     Token extends Paths<DefaultTokens>,
+    TokenValue = PathValue<DefaultTokens, Token> 
   >(config: BreakpointsConfig<Token>): Properties<
     DefaultTokens, 
     List,
-    UnionToTuple<TokenValues<PathValue<DefaultTokens, Token>, 'single'>>['length']
+    TokenValue extends any[] ? TokenValue['length'] : never
   > {
     this.breakpointsRule = memoize((tokens: any) => {
       const breakpoints = get(tokens, config.token)
   
       return Array.isArray(breakpoints)
-        ? breakpoints.map(config.toString)
+        ? breakpoints.map(config.media)
         : []
     })
 
@@ -111,10 +108,10 @@ export class Properties<
   }
 
   complexSelectors<
-    Selectors extends string
+    Selectors extends string = never
   >(rules?: Record<Selectors, (rules: string) => string>): Properties<
     DefaultTokens, 
-    List & NestedRecord<Selectors | `:${string}` | `&${string}`, Partial<List>, 2>,
+    List & NestedRecord<Selectors | `&${string}`, Partial<List>, 2>,
     Breakpoints
   > {
     Object.assign(this.rules, rules)

@@ -264,7 +264,7 @@ export type IsPrimitive<T> =
   false
 
 type ye = IsPrimitive<never>
-type Val = PathValue<Test, 'nestedTuple'>
+type Val = PathValue<Test, 'arr'>
 type Val1 = PathValue<Test, 'nestedTuple'>
 type Val3 = PathValue<Test, 'nestedObj'>
 type Val2 = PathValue<Test, 'nestedNumberObject.1'>
@@ -280,18 +280,18 @@ type CreateNumberList<
 type NumberList = CreateNumberList<30>
 
 type TryCastToNumber<T> = T extends keyof NumberList ? NumberList[T] : T
-export type MaybeTupple<Types, Arity extends number> = Partial<TupleOf<Types, Arity>> | Types
+export type MaybeTupple<Types, Arity extends number> = Partial<TupleOf<Types | null, Arity>> | Types
 
 export type NestedRecord<Keys extends PropertyKey, List, Level extends number = 0> = {
   [K in Keys]: List & ([Prev[Level]] extends [never] ? unknown : NestedRecord<Keys, List, Prev[Level]>)
 }
 
 export function debounce<V extends any[], R>(func: (...args: V) => R, timeout = 300){
-  let timer: NodeJS.Timeout
+  let timer: number
 
   return (...args: V) => {
     clearTimeout(timer)
-    timer = setTimeout(() => func(...args), timeout)
+    timer = window.setTimeout(() => func(...args), timeout)
   }
 }
 
@@ -302,4 +302,8 @@ export function isEmptyObject(obj: object) {
   return true
 }
 // {a: 1} & {b:2} => {a: 1, : 2}
-export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
+
+export const _ = <T>(): T => {
+  throw new Error("hole");
+}

@@ -125,7 +125,7 @@ export class Component<
       let value = rules[rule]
       const type = typeof value
 
-      if (!this.properties.rules[rule]) continue
+      if (!this.properties.rules[rule] && type !== 'object') continue
 
       if (type === 'function') {
         value = value(props)
@@ -133,13 +133,19 @@ export class Component<
 
       if (Array.isArray(value)) {
         for (let index = 0; index < value.length; index++) {
-          responsiveCss[index] = this.properties.compute(rule, value[index], tokens)
+          responsiveCss[index] = (responsiveCss[index] || '') + this.properties.compute(rule, value[index], tokens)
         }
         continue
       }
 
       if (type === 'object') {
         value = this.objectStyleToString(tokens, props, value)
+
+        if (rule[0] === '&') {
+          css += `${rule}{${value}}`
+
+          continue
+        }
       }
 
       css += this.properties.compute(rule, value, tokens)
@@ -197,7 +203,7 @@ export class Component<
 
     if (componentTheme.mapProps) Object.assign(props, componentTheme.mapProps(props))
 
-    const result  = {} as StyleSlots<Slots>
+    const result = {} as StyleSlots<Slots>
     
     for (let [name, { withProps, className, children: { component, ...childrenProps } = { component: undefined }, ...rules }] of Object.entries(componentTheme.slots)) {
       if (withProps) {
@@ -250,5 +256,3 @@ export const utils: SlotUtils = {
     }
   },
 }
-
-

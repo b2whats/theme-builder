@@ -8,19 +8,19 @@ const Circular = <T extends string | null | boolean | number>(arr: T[]) => {
   return () => arr[i++ % n]
 }
 
-const display = Circular(['block', 'flex', 'inline', null])
-const fontSize = Circular(["xxxxxl", "xxxxl", "xxxl", "xxl", "xl", "l", "m", "s", "xs", null])
-const focus = Circular([true, false, null])
-const shadow = Circular([1, 2, 3, 4, null])
+const display = Circular(['block', 'flex', 'inline'])
+const fontSize = Circular(["xxxxxl", "xxxxl", "xxxl", "xxl", "xl", "l", "m", "s", "xs"])
+const focus = Circular([true, false])
+const shadow = Circular([1, 2, 3, 4])
 
 var suite = new Benchmark.Suite();
 
 // suite.add('without token(No cache)', function() {
 //   properties.rules['display'](display(), tokens.scheme)
 // })
-// suite.add('nested token(No cache)', function() {
-//   properties.rules['fontSize'](fontSize(), tokens.scheme)
-// })
+suite.add('nested token(No cache)', function() {
+  properties.rules['fontSize'](fontSize(), tokens.scheme)
+})
 // suite.add('boolean token(No cache)', function() {
 //   properties.rules['focus'](focus(), tokens.scheme)
 // })
