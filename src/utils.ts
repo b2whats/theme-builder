@@ -222,7 +222,7 @@ type Test = {
   nestedTuple: [{ a: 1}, { b: 2 }]
   // nestedArr: { a: 1}[]
   nestedNumberObject: {
-    1?: number
+    '1': number
     2: string
   }
 }
@@ -230,11 +230,6 @@ type NestedKeyOf<ObjectType extends object> = {[Key in keyof ObjectType & (strin
 ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
 : `${Key}`
 }[keyof ObjectType & (string | number)];
-
-type qqq = NestedKeyOf<Test>
-type OPaths = Paths<Test>
-type PPP<T> = T extends object ? 1 : 2
-type PP = PPP<Test | undefined>
 
 type PathToTuple<Path> = Path extends `${infer Key}.${infer Rest}`
   ? [TryCastToNumber<Key>, Rest]
@@ -277,7 +272,7 @@ type CreateNumberList<
   Result extends Array<unknown> = [],
 > = Result['length'] extends N ? Result : CreateNumberList<N, [...Result, Result['length']]>
 
-type NumberList = CreateNumberList<30>
+type NumberList = CreateNumberList<30>[number]
 
 type TryCastToNumber<T> = T extends keyof NumberList ? NumberList[T] : T
 export type MaybeTupple<Types, Arity extends number> = Partial<TupleOf<Types | null, Arity>> | Types
@@ -286,12 +281,17 @@ export type NestedRecord<Keys extends PropertyKey, List, Level extends number = 
   [K in Keys]: List & ([Prev[Level]] extends [never] ? unknown : NestedRecord<Keys, List, Prev[Level]>)
 }
 
-export function debounce<V extends any[], R>(func: (...args: V) => R, timeout = 300){
-  let timer: number
+export function debounce<V extends any[], R>(func: (...args: V) => R, timeout = 300, immediate?: boolean){
+  let timer: number | undefined
 
   return (...args: V) => {
+    immediate && !timer && func(...args)
+    
     clearTimeout(timer)
-    timer = window.setTimeout(() => func(...args), timeout)
+    timer = window.setTimeout(() => {
+      func(...args)
+      timer = undefined
+    }, timeout)
   }
 }
 

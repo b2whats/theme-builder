@@ -3,8 +3,8 @@ import { useStyle } from './theme'
 import { ButtonProps } from './contract'
 import { useElementState } from '../../src/useElementState';
 
-class ClassComponent extends React.Component<{ CCProp: "foo" }> {}
-const FunctionComponent: React.FC<{ FCProp: "foo" }> = () => null;
+class ClassComponent extends React.Component<{ CCProp?: "foo" }> {}
+const FunctionComponent: React.FC<{ FCProp?: "foo" }> = () => null;
 
 export const _ = <T,>(): T => {
   throw new Error("hole"); 
@@ -19,13 +19,13 @@ export const Button = ({ children, ...props }: ButtonProps) => {
   const conditional = true
 console.log('render')
 
+const A = () => <div>123</div>
+
 // Добавить к чилдренам функцию
   return (
     <Box ref={ref} slot='base' as={props.href ? 'a' : 'button'} href={props.href} onClick={onClick}>
         {children}
-        {/* <Box as='span' slot='showPassword' log={() => console.log('render phase siblings')}>
-          <div>222</div>
-        </Box> */}
+        <Box as='span' slot='showPassword' children={_()} />
         <Box slot='base' parentPhase={phase}>
           {(phase) => <div data-phase={phase}>{phase}</div>}
         </Box>
@@ -46,7 +46,10 @@ console.log('render')
           {(phase) => <div/>}
         </Box>
         <Box slot='base' parentPhase={phase}>
-          {props.iconBefore}
+          {props.iconAfter}
+        </Box>
+        <Box slot='base'>
+          <FunctionComponent />
         </Box>
     </Box>
   )

@@ -14,9 +14,9 @@ const buttonTheme = new Component(properties)
   .defaultProps({
     size: 'l',
   })
-  // .mapProps((props) => ({
-  //   size: 'm',
-  // }))
+  .mapProps((props) => ({
+    size: 'm',
+  }))
   .slot('base', {
     asString: `
       box-sizing: border-box;
@@ -24,32 +24,27 @@ const buttonTheme = new Component(properties)
         font-size: 20px;
       }
     `,
-    // display: utils.if('shape', 'block', 'inline'),
-    // // borderRadius: utils.map('shape', {
-    //   pill: 50,
-    //   square: 's',
-    //   circle: 'circle',
-    // }),
+    display: utils.if('shape', 'block', 'inline'),
+    borderRadius: utils.map('shape', {
+      pill: 50,
+      square: 's',
+      circle: 'circle',
+    }),
     color: ['blue300', 'red300', 'black'],
-    // fontSize: (props) => 'xl',
-    // // height: (props) => props.size || 40,
+    fontSize: (props) => 'xl',
+    height: (props) => props.size || 40,
     hover: {
       color: 'black4',
     }
   })
   .slot('showPassword', {
-    fontSize: (props) => 'xl',
+    fontSize: (props) => undefined,
+    // TODO: УБрать всю логику отображения компонентов из темы
     children: {
       component: (dd: ButtonProps) => dd ? Icon : Icon2,
       color: ({ variant }) => variant === 'primary' ? 'black16' : 'black32'
     }
   })
-
-  // type Children = {
-  //   children: {
-  //     component: (props: object) => void
-  //   }
-  // }
 
 
 export const useStyle = createHook(buttonTheme)

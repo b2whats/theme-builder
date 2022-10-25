@@ -4,7 +4,7 @@ import type { Properties } from './Properties'
 import type { DeepPartial, MaybeArray, NoInfer, ComponentType } from './utils'
 import { objectHash, isEmptyObject } from './utils'
 
-type OrFunction<Args, Return> = (props: Args) => Return
+type OrFunction<Args, Return> = (props: Args) => Return | undefined
 type AddPropertyFunction<L, Props> = {
   [K in keyof L]?: L[K] extends Record<string, any> ? AddPropertyFunction<L[K], Props> : L[K] | OrFunction<Props, L[K]>
 }
