@@ -41,8 +41,8 @@ test('Properties compute - with token resolve (deep)', () => {
 })
 
 test('Properties compute - with token(number) resolve', () => {
-  const rule = properties.compute('shadow', 1, tokens.scheme)
-  const cache = properties.hasCache('shadow', 1, tokens.scheme)
+  const rule = properties.compute('shadow', "1", tokens.scheme)
+  const cache = properties.hasCache('shadow', "1", tokens.scheme)
 
   expect(cache).toBe(true)
   expect(rule).toMatchSnapshot()

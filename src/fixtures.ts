@@ -108,6 +108,7 @@ export const tokens = new Tokens({
     xxxs: 2,
   },
 
+  // TODO: Слетели типы, ключи представлены как строки
   shadow: {
     1: '1',
     2: '2',
